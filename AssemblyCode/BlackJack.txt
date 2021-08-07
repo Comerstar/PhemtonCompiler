@@ -1,0 +1,11 @@
+#Step 1: Print Instructions 
+#Step 2: Print total quantity of money
+#Step 3: Enter amount to bet
+#Step 4: Generate initial dealer's card and two initial player cards
+#Step 5: Display Dealer's card
+#Step 6: Display Players cards
+#Step 7: Player inputs their choices
+#Step 8: Do the relavent processes required to complete the player's turn
+#Step 9, draw cards until the dealer reaches 17 or is bust
+#Step 10, calculate bet results
+

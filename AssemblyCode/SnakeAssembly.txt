@@ -1,0 +1,587 @@
+!4000
+#Update execution mode
+LDV 2007 MODE
+PWS
+PWS
+
+#Print out instructions
+LDV 0059 TTY 
+LDV 006f TTY 
+LDV 0075 TTY 
+LDV 0020 TTY 
+
+LDV 0061 TTY 
+LDV 0072 TTY 
+LDV 0065 TTY 
+LDV 0020 TTY 
+
+LDV 0061 TTY 
+LDV 0020 TTY 
+
+LDV 0067 TTY 
+LDV 0072 TTY 
+LDV 0065 TTY 
+LDV 0065 TTY 
+LDV 006e TTY 
+LDV 0020 TTY 
+
+LDV 0073 TTY 
+LDV 006e TTY 
+LDV 0061 TTY 
+LDV 006b TTY 
+LDV 0065 TTY 
+LDV 002c TTY 
+LDV 0020 TTY 
+
+LDV 0061 TTY 
+LDV 006e TTY 
+LDV 0064 TTY 
+LDV 0020 TTY 
+
+LDV 0079 TTY 
+LDV 006f TTY 
+LDV 0075 TTY 
+LDV 0020 TTY 
+
+LDV 0077 TTY 
+LDV 0061 TTY 
+LDV 006e TTY 
+LDV 0074 TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 006f TTY 
+LDV 0020 TTY 
+
+LDV 0065 TTY 
+LDV 0061 TTY 
+LDV 0074 TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 0068 TTY 
+LDV 0065 TTY 
+LDV 0020 TTY 
+
+LDV 0072 TTY 
+LDV 0065 TTY 
+LDV 0064 TTY 
+LDV 0020 TTY 
+
+LDV 0061 TTY 
+LDV 0070 TTY 
+LDV 0070 TTY 
+LDV 006c TTY 
+LDV 0065 TTY 
+LDV 0073 TTY 
+LDV 0020 TTY 
+
+LDV 0077 TTY 
+LDV 0068 TTY 
+LDV 0069 TTY 
+LDV 006c TTY 
+LDV 0073 TTY 
+LDV 0074 TTY 
+LDV 0020 TTY 
+
+LDV 0061 TTY 
+LDV 0076 TTY 
+LDV 006f TTY 
+LDV 0069 TTY 
+LDV 0064 TTY 
+LDV 0069 TTY 
+LDV 006e TTY 
+LDV 0067 TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 0068 TTY 
+LDV 0065 TTY 
+LDV 0020 TTY 
+
+LDV 0065 TTY 
+LDV 0064 TTY 
+LDV 0067 TTY 
+LDV 0065 TTY 
+LDV 0073 TTY 
+LDV 0020 TTY 
+
+LDV 0061 TTY 
+LDV 006e TTY 
+LDV 0064 TTY 
+LDV 0020 TTY 
+
+LDV 0079 TTY 
+LDV 006f TTY 
+LDV 0075 TTY 
+LDV 0072 TTY 
+LDV 0073 TTY 
+LDV 0065 TTY 
+LDV 006c TTY 
+LDV 0066 TTY 
+LDV 002e TTY 
+LDV 0020 TTY 
+
+LDV 0050 TTY 
+LDV 0072 TTY 
+LDV 0065 TTY 
+LDV 0073 TTY 
+LDV 0073 TTY 
+LDV 0020 TTY 
+
+LDV 0052 TTY 
+LDV 0069 TTY 
+LDV 0067 TTY 
+LDV 0068 TTY 
+LDV 0074 TTY 
+LDV 0020 TTY 
+
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 0020 TTY 
+
+LDV 0043 TTY 
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 0074 TTY 
+LDV 0072 TTY 
+LDV 006f TTY 
+LDV 006c TTY 
+LDV 006c TTY 
+LDV 0065 TTY 
+LDV 0072 TTY 
+LDV 0020 TTY 
+
+LDV 0031 TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 006f TTY 
+LDV 0020 TTY 
+
+LDV 0073 TTY 
+LDV 0074 TTY 
+LDV 0061 TTY 
+LDV 0072 TTY 
+LDV 0074 TTY 
+LDV 002c TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 0068 TTY 
+LDV 0065 TTY 
+LDV 006e TTY 
+LDV 0020 TTY 
+
+LDV 0075 TTY 
+LDV 0073 TTY 
+LDV 0065 TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 0068 TTY 
+LDV 0065 TTY 
+LDV 0020 TTY 
+
+LDV 0064 TTY 
+LDV 0069 TTY 
+LDV 0072 TTY 
+LDV 0065 TTY 
+LDV 0063 TTY 
+LDV 0074 TTY 
+LDV 0069 TTY 
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 0020 TTY 
+
+LDV 0062 TTY 
+LDV 0075 TTY 
+LDV 0074 TTY 
+LDV 0074 TTY 
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 0073 TTY 
+LDV 0020 TTY 
+
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 0020 TTY 
+
+LDV 0043 TTY 
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 0074 TTY 
+LDV 0072 TTY 
+LDV 006f TTY 
+LDV 006c TTY 
+LDV 006c TTY 
+LDV 0065 TTY 
+LDV 0072 TTY 
+LDV 0020 TTY 
+
+LDV 0031 TTY 
+LDV 0020 TTY 
+
+LDV 0074 TTY 
+LDV 006f TTY 
+LDV 0020 TTY 
+
+LDV 0063 TTY 
+LDV 0068 TTY 
+LDV 0061 TTY 
+LDV 006e TTY 
+LDV 0067 TTY 
+LDV 0065 TTY 
+LDV 0020 TTY 
+
+LDV 0064 TTY 
+LDV 0069 TTY 
+LDV 0072 TTY 
+LDV 0065 TTY 
+LDV 0063 TTY 
+LDV 0074 TTY 
+LDV 0069 TTY 
+LDV 006f TTY 
+LDV 006e TTY 
+LDV 002e TTY 
+LDV 0020 TTY
+
+#Defining variable addresses
+%aATailX = 33c0
+%aATailC = 33c1
+%aTailX = 33c2
+%aTailC = 33c3
+%aAHeadX = 33c4
+%aAHeadC = 33c5
+%aAppleX = 33c6
+%aAppleC = 33c7
+%aHeadX = 33c8
+%aHeadC = 33c9
+
+%aDirection = 0100
+%aScore = 0101
+%Instruct1 = 0102
+%Instruct2 = 0103
+%aVarA = 0104
+%Instruct3 = 0105
+%Instruct4 = 0106
+%aAppleCoord = 0107
+
+#4808 = Right, 4809 = Down, 480a = Left, 480b = Up
+
+%aBufferReset = 4800
+%aBufferWrite = 4801
+%aBufferDecrement = 4802
+%aHeadCoord = 4800
+%aHeadSprite = 4801
+%aAHeadCoord = 4802
+%aAHeadSprite = 4803
+%aTailCoord = 4804
+%aTailSprite = 4805
+%aATailCoord = 4806
+%aATailSprite = 4807
+
+#Initialising the board
+LDV 0700 aHeadC
+LDV 0580 aAHeadC
+LDV 0480 aTailC
+LDV 0000 aATailC
+LDV f800 aAppleC
+
+#Clear the queue
+LDV 0001 aBufferReset //startGame
+LDV 0000 aBufferReset
+
+#Clear the screen by setting the highest sprite to a black square covering the whole screen
+LDV 0f0f 33ca
+LDV 0001 33cb
+#Ensure cleared screen is rendered
+LDV 0007 MODE
+PWS
+PWS
+LDV 2007 MODE
+PWS
+PWS
+#Ensure the clearing sprite is removed
+LDV 0000 33cb
+
+#Write initial snake position to the queue
+LDV 0071 aBufferWrite
+LDV 0072 aBufferWrite
+LDV 0073 aBufferWrite
+LDV 0074 aBufferWrite
+
+#Prepare an indirect load instruction in the general registers
+LDV 2c20 Instruct1 #ANB INB
+LDV 0000 Instruct2
+LDV 5000 Instruct3 #JMP
+LDV return Instruct4
+
+#Randomise apple position
+LDV 00ff RND
+LDD RND aAppleCoord
+LDD aAppleCoord 4803
+LDD 4810 aAppleX
+
+#Reset controller 1
+LDV 0000 CTRLR1P
+
+#Load in colours
+LDV 0701 aHeadC
+LDV 0581 aAHeadC
+LDV 0481 aTailC
+LDV 0001 aATailC
+LDV f801 aAppleC
+#Load in data into the sprite table
+LDD aHeadSprite aHeadX
+LDD aAHeadSprite aAHeadX
+LDD aTailSprite aTailX
+LDD aATailSprite aATailX
+
+#Reset score, and set initial direction
+LDV 0000 aScore
+LDV 4808 aDirection
+
+#Render screen
+LDV 0007 MODE
+PWS
+PWS
+LDV 2007 MODE
+PWS
+PWS
+
+#Spin until controller input
+PWS //Spin
+ANB INB 0000 CTRLR1P
+JPB 00 Spin
+
+#Update execution mode
+PWS
+LDV c003 MODE
+PWS
+PWS
+
+#Game loop
+ANB INB 0000 aDirection //StartLoop
+
+#Figure out which controller input has been given, and update the snake direction
+JPB 00 RightLeft
+
+ANB INB 0000 CTRLR1P #UpDown
+JPB 10 Right
+JPB 12 Left
+JMP PastControllers
+LDV 4808 aDirection //Right
+JMP PastControllers
+LDV 480a aDirection //Left
+JMP PastControllers
+
+ANB INB 0000 CTRLR1P //RightLeft
+JPB 11 Down
+JPB 13 Up
+JMP PastControllers
+LDV 4809 aDirection //Down
+JMP PastControllers
+LDV 480b aDirection //Up
+JMP PastControllers
+
+#Clear the controller inputs
+LDV 0000 CTRLR1P //PastControllers
+PWS
+
+#Prepare the address where the snake head will be next
+ALB ADD 0004 aDirection aVarA
+#Fetch the value of the check of whether the snake will collide with itself and load the result into the ACC
+JMP Instruct1
+JPF NQL Gameover //return
+LDI aDirection aBufferWrite
+
+#Update sprite positions
+LDD aHeadSprite aHeadX
+LDD aAHeadSprite aAHeadX
+LDD aTailSprite aTailX
+LDD aATailSprite aATailX
+GRF #Update graphics
+
+#Move tail and head
+LDV 0001 4804
+LDV 0000 4805
+ANB INB 0000 4811
+JPF NQL Gameover
+
+#Check if snake has eaten the apple
+AND SBA aAppleCoord aHeadCoord
+JPF NQL PastApple
+#If so, increment score by 1 and respawn apple
+ALB ICB 0000 aScore aScore
+LDV 00ff RND
+LDD RND aAppleCoord
+LDD aAppleCoord 4803
+LDD 4810 aAppleX
+LDV 0000 aBufferDecrement
+
+PWS //PastApple
+
+JMP StartLoop
+
+#Game over
+PWS //Gameover
+#Update execution mode
+LDV 0010 PRCT
+LDV 2007 MODE
+PWS
+
+#Print game over message
+LDV 0000 TTY
+LDV 0047 TTY
+LDV 0041 TTY
+LDV 004d TTY
+LDV 0045 TTY
+LDV 0020 TTY
+LDV 004f TTY
+LDV 0056 TTY
+LDV 0045 TTY
+LDV 0052 TTY
+LDV 002e TTY
+LDV 0020 TTY
+PWS
+
+LDV 0059 TTY
+LDV 006f TTY
+LDV 0075 TTY
+LDV 0020 TTY
+LDV 0073 TTY
+LDV 0063 TTY
+LDV 006f TTY
+LDV 0072 TTY
+LDV 0065 TTY
+LDV 0064 TTY
+LDV 0020 TTY
+
+#Convert score to denary
+LDD aScore 0110
+
+PSD aScore
+PSV PRINTSCORE
+
+JMP BinaryToBCD
+
+#Print score
+PPD 0100 //PRINTSCORE
+LDV 0001 0101
+PPD 0102 //PRINTSCORELOOP
+ALB ORR 0030 0102 TTY
+ALB ICB 0000 0101 0101
+AND SBA 0100 0101
+JPF CRY PRINTSCORELOOP
+LDV 002e TTY 
+LDV 0020 TTY
+
+#See if it is a new high score
+AND SBA 3c01 0110
+JPF NCY NEWHIGHSCORE
+
+LDV 0048 TTY
+LDV 0069 TTY
+LDV 0067 TTY
+LDV 0068 TTY
+LDV 0020 TTY
+LDV 0073 TTY
+LDV 0063 TTY
+LDV 006f TTY
+LDV 0072 TTY
+LDV 0065 TTY
+LDV 0020 TTY
+LDV 0069 TTY
+LDV 0073 TTY
+LDV 0020 TTY
+
+#Print old high score
+PSD 3c01
+PSV PRINTHIGHSCORE
+
+JMP BinaryToBCD
+
+PPD 0100 //PRINTHIGHSCORE
+LDV 0001 0101
+PPD 0102 //PRINTHIGHSCORELOOP
+ALB ORR 0030 0102 TTY
+ALB ICB 0000 0101 0101
+AND SBA 0100 0101
+JPF CRY PRINTHIGHSCORELOOP
+LDV 002e TTY 
+LDV 0020 TTY
+JMP ENDMENU
+
+#Celebrate new high score
+LDD 0110 3c01//NEWHIGHSCORE
+LDV 004e TTY
+LDV 0065 TTY
+LDV 0077 TTY
+LDV 0020 TTY
+LDV 0068 TTY
+LDV 0069 TTY
+LDV 0067 TTY
+LDV 0068 TTY
+LDV 0020 TTY
+LDV 0073 TTY
+LDV 0063 TTY
+LDV 006f TTY
+LDV 0072 TTY
+LDV 0065 TTY
+LDV 0021 TTY
+LDV 0020 TTY
+
+#Print instructions to play again
+LDV 0050 TTY //ENDMENU
+LDV 0072 TTY
+LDV 0065 TTY
+LDV 0073 TTY
+LDV 0073 TTY
+LDV 0020 TTY
+
+LDV 0072 TTY
+LDV 0069 TTY
+LDV 0067 TTY
+LDV 0068 TTY
+LDV 0074 TTY
+LDV 0020 TTY
+
+LDV 006f TTY
+LDV 006e TTY
+LDV 0020 TTY
+
+LDV 0043 TTY
+LDV 006f TTY
+LDV 006e TTY
+LDV 0074 TTY
+LDV 0072 TTY
+LDV 006f TTY
+LDV 006c TTY
+LDV 006c TTY
+LDV 0065 TTY
+LDV 0072 TTY
+LDV 0020 TTY
+
+LDV 0031 TTY
+LDV 0020 TTY
+
+LDV 0074 TTY
+LDV 006f TTY
+LDV 0020 TTY
+
+LDV 0070 TTY
+LDV 006c TTY
+LDV 0061 TTY
+LDV 0079 TTY
+LDV 0020 TTY
+
+LDV 0061 TTY
+LDV 0067 TTY
+LDV 0061 TTY
+LDV 0069 TTY
+LDV 006e TTY
+LDV 002e TTY
+LDV 0020 TTY
+
+JMP startGame

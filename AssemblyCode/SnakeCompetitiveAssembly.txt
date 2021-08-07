@@ -1,0 +1,740 @@
+!4000
+#Update execution mode
+LDV 2007 MODE
+PWS
+PWS
+
+LDV 0000 TTY
+#Print Instructions
+LDV 'T TTY
+LDV 'h TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'r TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV '_ TTY
+
+LDV 's TTY
+LDV 'n TTY
+LDV 'a TTY
+LDV 'k TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'i TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'P TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV '1 TTY
+LDV '. TTY
+LDV '_ TTY
+#=====================
+
+LDV 'T TTY
+LDV 'h TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'b TTY
+LDV 'l TTY
+LDV 'u TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 's TTY
+LDV 'n TTY
+LDV 'a TTY
+LDV 'k TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'i TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'P TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV '2 TTY
+LDV '. TTY
+LDV '_ TTY
+#=====================
+
+LDV 'E TTY
+LDV 'a TTY
+LDV 't TTY
+LDV '_ TTY
+
+LDV 'g TTY
+LDV 'o TTY
+LDV 'l TTY
+LDV 'd TTY
+LDV 'e TTY
+LDV 'n TTY
+LDV '_ TTY
+
+LDV 'a TTY
+LDV 'p TTY
+LDV 'p TTY
+LDV 'l TTY
+LDV 'e TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 't TTY
+LDV 'o TTY
+LDV '_ TTY
+
+LDV 's TTY
+LDV 'c TTY
+LDV 'o TTY
+LDV 'r TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'p TTY
+LDV 'o TTY
+LDV 'i TTY
+LDV 'n TTY
+LDV 't TTY
+LDV 's TTY
+LDV '. TTY
+LDV '_ TTY
+#=====================
+
+LDV 'W TTY
+LDV 'h TTY
+LDV 'o TTY
+LDV 'e TTY
+LDV 'v TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV 'd TTY
+LDV 'o TTY
+LDV 'e TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'n TTY
+LDV 'o TTY
+LDV 't TTY
+LDV '_ TTY
+
+LDV 'd TTY
+LDV 'i TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'g TTY
+LDV 'a TTY
+LDV 'i TTY
+LDV 'n TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV '1 TTY
+LDV '0 TTY
+LDV '_ TTY
+
+LDV 'p TTY
+LDV 'o TTY
+LDV 'i TTY
+LDV 'n TTY
+LDV 't TTY
+LDV 's TTY
+LDV '. TTY
+LDV '_ TTY
+#=====================
+
+LDV 'T TTY
+LDV 'h TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'g TTY
+LDV 'a TTY
+LDV 'm TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 's TTY
+LDV 't TTY
+LDV 'a TTY
+LDV 'r TTY
+LDV 't TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'o TTY
+LDV 'n TTY
+LDV 'c TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'b TTY
+LDV 'o TTY
+LDV 't TTY
+LDV 'h TTY
+LDV '_ TTY
+
+LDV 'p TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'h TTY
+LDV 'a TTY
+LDV 'v TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'p TTY
+LDV 'r TTY
+LDV 'e TTY
+LDV 's TTY
+LDV 's TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV '_ TTY
+
+LDV 'r TTY
+LDV 'i TTY
+LDV 'g TTY
+LDV 'h TTY
+LDV 't TTY
+LDV '_ TTY
+
+LDV 'o TTY
+LDV 'n TTY
+LDV '_ TTY
+
+LDV 't TTY
+LDV 'h TTY
+LDV 'e TTY
+LDV 'i TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV 'c TTY
+LDV 'o TTY
+LDV 'n TTY
+LDV 't TTY
+LDV 'r TTY
+LDV 'o TTY
+LDV 'l TTY
+LDV 'l TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '. TTY
+LDV '_ TTY
+
+#Defining variable addresses
+%aAppleX = 33cc
+%aAppleC = 33cd
+#Snake1
+%aATailX1 = 33c0
+%aATailC1 = 33c1
+%aTailX1 = 33c4
+%aTailC1 = 33c5
+%aAHeadX1 = 33c8
+%aAHeadC1 = 33c9
+%aHeadX1 = 33ce
+%aHeadC1 = 33cf
+#Snake2
+%aATailX2 = 33c2
+%aATailC2 = 33c3
+%aTailX2 = 33c6
+%aTailC2 = 33c7
+%aAHeadX2 = 33ca
+%aAHeadC2 = 33cb
+%aHeadX2 = 33d0
+%aHeadC2 = 33d1
+
+%aDirection1 = 0100
+%aScore1 = 0101
+%aVarA1 = 0102
+%Snake1Died = 0103
+
+%aDirection2 = 0104
+%aScore2 = 0105
+%aVarA2 = 0106
+%Snake2Died = 0107
+
+%aAppleCoord = 0108
+
+#5008 = Right, 5009 = Down, 500a = Left, 500b = Up
+
+%aBufferReset = 5000
+%aBufferWrite1 = 5001
+%aBufferDecrement1 = 5002
+%aDirection1L = 5006
+%aController1L = 5007
+%aHeadCoord1 = 5000
+%aHeadSprite1 = 5001
+%aAHeadCoord1 = 5002
+%aAHeadSprite1 = 5003
+%aTailCoord1 = 5004
+%aTailSprite1 = 5005
+%aATailCoord1 = 5006
+%aATailSprite1 = 5007
+%aNewCoord1 = 5008
+%aEdgeCheck1 = 5009
+%aNewDirection1 = 500a
+
+#6008 = Right, 6009 = Down, 600a = Left, 600b = Up
+
+%aBufferWrite2 = 6001
+%aBufferDecrement2 = 6002
+%aDirection2L = 6006
+%aController2L = 6007
+%aHeadCoord2 = 6000
+%aHeadSprite2 = 6001
+%aAHeadCoord2 = 6002
+%aAHeadSprite2 = 6003
+%aTailCoord2 = 6004
+%aTailSprite2 = 6005
+%aATailCoord2 = 6006
+%aATailSprite2 = 6007
+%aNewCoord2 = 6008
+%aEdgeCheck2 = 6009
+%aNewDirection2 = 600a
+
+#Initialising the board
+LDV 0700 aHeadC1
+LDV 0580 aAHeadC1
+LDV 0480 aTailC1
+LDV 0000 aATailC1
+LDV 0700 aHeadC2
+LDV 0580 aAHeadC2
+LDV 0480 aTailC2
+LDV 0000 aATailC2
+LDV f800 aAppleC
+
+#Clear the queue
+LDV 0001 aBufferReset //startGame
+LDV 0000 aBufferReset
+
+#Clear the screen by setting the highest sprite to a black square covering the whole screen
+LDV 0f0f 33fe
+LDV 0001 33ff
+#Ensure cleared screen is rendered
+LDV 0007 MODE
+PWS
+PWS
+LDV 2007 MODE
+PWS
+PWS
+#Ensure the clearing sprite is removed
+LDV 0000 33fe
+
+#Write initial snake position to the queue
+LDV 0051 aBufferWrite1
+LDV 0052 aBufferWrite1
+LDV 0053 aBufferWrite1
+LDV 0054 aBufferWrite1
+
+#Write initial snake position to the queue
+LDV 00a1 aBufferWrite2
+LDV 00a2 aBufferWrite2
+LDV 00a3 aBufferWrite2
+LDV 00a4 aBufferWrite2
+
+#Randomise apple position
+LDV 00ff RND
+LDD RND aAppleCoord
+LDD aAppleCoord 5003
+LDD 5010 aAppleX
+
+LDV 0000 Snake1Died
+LDV 0000 Snake2Died
+
+#Reset controllers
+LDV 0000 CTRLR1P
+LDV 0000 CTRLR2P
+
+#Load in colours
+LDV fbdf aHeadC1
+LDV f801 aAHeadC1
+LDV 7801 aTailC1
+LDV 0001 aATailC1
+LDV 7bff aHeadC2
+LDV 003f aAHeadC2
+LDV 001f aTailC2
+LDV 0001 aATailC2
+LDV ff01 aAppleC
+
+#Load in data into the sprite table
+LDD aHeadSprite1 aHeadX1
+LDD aAHeadSprite1 aAHeadX1
+LDD aTailSprite1 aTailX1
+LDD aATailSprite1 aATailX1
+LDD aHeadSprite2 aHeadX2
+LDD aAHeadSprite2 aAHeadX2
+LDD aTailSprite2 aTailX2
+LDD aATailSprite2 aATailX2
+
+#Reset score, and set initial direction
+LDV 000a aScore1
+LDV 000a aScore2
+LDV 5008 aDirection1L
+LDV 6008 aDirection2L
+
+#Render screen
+LDV 0007 MODE
+PWS
+PWS
+LDV 2007 MODE
+PWS
+PWS
+
+#Spin until both controller input
+PWS //Spin
+AND AND CTRLR2P CTRLR1P
+JPB 00 Spin
+
+#Update execution mode
+PWS
+LDV c003 MODE
+PWS
+PWS
+
+#Game loop
+#Figure out which controller input has been given, and update the snake direction
+LDD CTRLR1P aController1L //StartLoop
+LDD aNewDirection1 aDirection1L
+LDV 0000 CTRLR1P
+LDD CTRLR2P aController2L
+LDD aNewDirection2 aDirection2L
+LDV 0000 CTRLR2P
+PWS
+
+#Fetch the value of the check of whether the snake will collide with itself and load the result into the ACC
+ANB INB 0000 aEdgeCheck1
+JPF EQL Past1
+LDV 0001 Snake1Died
+LDD aNewCoord1 aBufferWrite1 //Past1
+ANB INB 0000 aEdgeCheck2
+JPF EQL Past2
+LDV 0001 Snake2Died
+LDD aNewCoord2 aBufferWrite2 //Past2
+
+ANB INB 0000 Snake1Died
+JPF NQL Gameover
+ANB INB 0000 Snake2Died
+JPF NQL Gameover
+
+#Update sprite positions
+LDD aHeadSprite1 aHeadX1
+LDD aAHeadSprite1 aAHeadX1
+LDD aTailSprite1 aTailX1
+LDD aATailSprite1 aATailX1
+LDD aHeadSprite2 aHeadX2
+LDD aAHeadSprite2 aAHeadX2
+LDD aTailSprite2 aTailX2
+LDD aATailSprite2 aATailX2
+GRF #Update graphics
+
+#Move tail and head
+LDV 0001 5004
+LDV 0000 5005
+LDV 0001 6004
+LDV 0000 6005
+ANB INB 0000 5011
+JPF EQL Past3
+LDV 0001 Snake1Died
+ANB INB 0000 6011 //Past3
+JPF EQL Past4
+LDV 0001 Snake2Died
+
+#Check if snake has eaten the apple
+AND SBA aAppleCoord aHeadCoord1 //Past4
+JPF NQL PastApple1
+#If so, increment score by 1 and respawn apple
+ALB ICB 0000 aScore1 aScore1
+LDV 00ff RND
+LDD RND aAppleCoord
+LDD aAppleCoord 5003
+LDD 5010 aAppleX
+LDV 0000 aBufferDecrement1
+JMP PastApple2
+
+AND SBA aAppleCoord aHeadCoord2 //PastApple1
+JPF NQL PastApple2
+#If so, increment score by 1 and respawn apple
+ALB ICB 0000 aScore2 aScore2
+LDV 00ff RND
+LDD RND aAppleCoord
+LDD aAppleCoord 5003
+LDD 5010 aAppleX
+LDV 0000 aBufferDecrement2
+
+PWS //PastApple2
+
+JMP StartLoop
+
+#Game over
+PWS //Gameover
+#Update execution mode
+LDV 0010 PRCT
+LDV 2007 MODE
+PWS
+ANB INB 0000 Snake1Died
+JPF EQL Past5
+ALB SBB 000a aScore1 aScore1
+ANB INB 0000 Snake2Died //Past5
+JPF EQL Past6
+ALB SBB 000a aScore2 aScore2
+
+LDV 0000 TTY //Past6
+
+#Print game over message
+LDV 'P TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV '1 TTY
+LDV '_ TTY
+
+LDV 'S TTY
+LDV 'c TTY
+LDV 'o TTY
+LDV 'r TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV ': TTY
+LDV '_ TTY
+
+#Convert score to denary
+LDD aScore1 0110
+
+PSD aScore1
+PSV PRINTSCORE1
+PWS
+JMP BinaryToBCD
+
+#Print score
+PPD 0100 //PRINTSCORE1
+LDV 0001 0101
+PPD 0102 //PRINTSCORELOOP1
+ALB ORR 0030 0102 TTY
+ALB ICB 0000 0101 0101
+AND SBA 0100 0101
+JPF CRY PRINTSCORELOOP1
+LDV '. TTY 
+LDV '_ TTY
+
+LDV 'P TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV '2 TTY
+LDV '_ TTY
+
+LDV 'S TTY
+LDV 'c TTY
+LDV 'o TTY
+LDV 'r TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV ': TTY
+LDV '_ TTY
+
+#Convert score to denary
+LDD aScore2 0111
+
+PSD aScore2
+PSV PRINTSCORE2
+PWS
+JMP BinaryToBCD
+
+#Print score
+PPD 0100 //PRINTSCORE2
+LDV 0001 0101
+PPD 0102 //PRINTSCORELOOP2
+ALB ORR 0030 0102 TTY
+ALB ICB 0000 0101 0101
+AND SBA 0100 0101
+JPF CRY PRINTSCORELOOP2
+LDV '. TTY 
+LDV '_ TTY
+
+AND SBA 0110 0111
+JPF EQL Draw
+JPF NCY Player2Win
+
+LDV 'P TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV '1 TTY
+LDV '_ TTY
+
+LDV 'W TTY
+LDV 'i TTY
+LDV 'n TTY
+LDV 's TTY
+LDV 'exclamation TTY
+LDV '_ TTY
+JMP Past7
+
+LDV 'I TTY //Draw
+LDV 't TTY
+LDV '' TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'a TTY
+LDV '_ TTY
+
+LDV 'D TTY
+LDV 'r TTY
+LDV 'a TTY
+LDV 'w TTY
+LDV 'exclamation TTY
+LDV '_ TTY
+JMP Past7
+
+LDV 'P TTY //Player2Win
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV '2 TTY
+LDV '_ TTY
+
+LDV 'W TTY
+LDV 'i TTY
+LDV 'n TTY
+LDV 's TTY
+LDV 'exclamation TTY
+LDV '_ TTY
+
+
+#=====================
+
+LDV 'A TTY //Past7
+LDV '_ TTY
+
+LDV 'n TTY
+LDV 'e TTY
+LDV 'w TTY
+LDV '_ TTY
+
+LDV 'g TTY
+LDV 'a TTY
+LDV 'm TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 's TTY
+LDV 't TTY
+LDV 'a TTY
+LDV 'r TTY
+LDV 't TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'o TTY
+LDV 'n TTY
+LDV 'c TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'b TTY
+LDV 'o TTY
+LDV 't TTY
+LDV 'h TTY
+LDV '_ TTY
+
+LDV 'p TTY
+LDV 'l TTY
+LDV 'a TTY
+LDV 'y TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'h TTY
+LDV 'a TTY
+LDV 'v TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'p TTY
+LDV 'r TTY
+LDV 'e TTY
+LDV 's TTY
+LDV 's TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV '_ TTY
+
+LDV 'r TTY
+LDV 'i TTY
+LDV 'g TTY
+LDV 'h TTY
+LDV 't TTY
+LDV '_ TTY
+
+LDV 'o TTY
+LDV 'n TTY
+LDV '_ TTY
+
+LDV 't TTY
+LDV 'h TTY
+LDV 'e TTY
+LDV 'i TTY
+LDV 'r TTY
+LDV '_ TTY
+
+LDV 'c TTY
+LDV 'o TTY
+LDV 'n TTY
+LDV 't TTY
+LDV 'r TTY
+LDV 'o TTY
+LDV 'l TTY
+LDV 'l TTY
+LDV 'e TTY
+LDV 'r TTY
+LDV '. TTY
+LDV '_ TTY
+
+JMP startGame

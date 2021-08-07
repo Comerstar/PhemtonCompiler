@@ -1,0 +1,40 @@
+!4000
+
+LDV ea8b 33c3 #Red
+LDV 4513 33c5 #Green
+LDV 0329 33c7 #Blue
+LDV fd81 33c9 #Orange
+
+%aPtr1 = 0100
+%aPtr2 = 0101
+%aPtr3 = 0102
+%aPtr4 = 0103
+%aEnd = 0104
+%aAdd = 0105
+
+LDV 46fc aEnd
+LDV 0004 aAdd
+
+PWS
+JPC 0 Start
+PWS
+JPC 0 Start
+
+LDV 4400 aPtr1 //Start
+LDV 4401 aPtr2
+LDV 4402 aPtr3
+LDV 4403 aPtr4
+
+PWS //Loop
+LDI aPtr1 33c2
+LDI aPtr2 33c4
+LDI aPtr3 33c6
+LDI aPtr4 33c8
+PWS
+ALR ADD 0005 aPtr1
+ALR ADD 0105 aPtr2
+ALR ADD 0205 aPtr3
+ALR ADD 0305 aPtr4
+ANR SBA 0004
+JPF CRY Start
+JMP Loop
