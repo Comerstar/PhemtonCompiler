@@ -1,0 +1,250 @@
+|"""""""| |"""""""| |""\   /""| |"""""""|  /"""""\            /"/ |"|
+| |"""""' | |"""""' |   \ /   | '""| |""' | |"""| |          / /  | |
+| '"""|   | '"""|   | |\ V /| |    | |    | |   | | |"""""| /  '""' '"|
+| |"""'   | |"""'   | | \ / | |    | |    | |___| | '"""""' '"""""| |"'
+|_|       |_""""""| |_|  V  |_|    |_|     \_____/                |_|
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    /"""".    /"""""""/ /"/    /"/ /"""""""/ /"/       .-"""'.   /""""".  /"""""""/ /""""".
+   / /""\ \  / /"""""' / /    / / / /"""""' / /       / /""/ /  / /""/ / / /"""""' / /""/ /
+  / /   / / / '"""/   / /    / / / '"""/   / /       / /  / /  / '""' / / '"""/   / '""'."
+ / /__.'.' / /"""'    '. '.-'.' / /"""'   / /_____  / /__/ /  / /"""   / /"""'   / /"\ \
+/____.-'  /_'"""""/     ".-"   /_'"""""/ /_______/  '.__--'  /_/      / '"""""/ /_/  /_/
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+   .-"""'.  /"/  /"/ /"""""""/ /"""".    /"""""""/
+  / /""""" / /  / / '""/ /""' / /""\ \  / /"""""'
+ / /  /"/ / /  / /    / /    / /   / / / '"""/
+/ /__/ / / /__/ / ___/ /__  / /__.'.' / /"""'
+'.__--'  '.__--' /_______/ /____.-'  /_'"""""/
+
+""""""""""""""""""""""""""""""""""""""""""""""
+
+Femto-4 Developer Guide
+"""""""""""""""""""""""""
+
+What is the Femto-4?
+""""""""""""""""""""
+The Femto-4 is a simulated console constructed in CircuitVerse. The latest version can be found here: 
+https://circuitverse.org/users/4699/projects/femto-4v2-3-computer
+It is named in reference to the Pico-8. 
+If you have any questions, or you have written a cart and want me to see it/add it to the main branch, feel free to leave a comment on the project itself. 
+
+What can the Femto-4 Do?
+""""""""""""""""""""""""
+Immediate, direct, and indirect memory access
+Add, subtract, left shift, right shift, basic binary logic, multiply, divide
+Jumps, and conditional jumps
+Drive a 16x16 pixel screen
+Read controller and keyboard inputs
+Output text
+Save data into a "save cart" (which is really an EEPROM bank)
+"Fast execution"
+Hold 512kx16b of data in a cart
+Push and pop from a stack
+
+This guide will cover how to use Phemton, the Femto-4's high level language. To view the basics of using the Femto-4 view the developer guide. 
+
+What is Phemton?
+""""""""""""""""
+Phemton is the Femto-4's high level language. There are three main planned versions:
+Phemton Lite (a1.0): Compile time variable assignment, making it less powerful but faster
+Phemton Full (WIP): Run time variable assignment, making it slower but more powerful
+Phemton Plus (WIP): Adds additional types long and floats
+
+In order to compile code, place the source code in Source.txt, and the compiled assembly will be loaded into Assembly.txt. The code then runs the assembler, to load the final machine code into MachineCode.txt. 
+
+Phemton Lite (a1.0)
+"""""""""""""""""""
+Features
+""""""""
+Integer, Charater, Boolean types
+Array, String types
+If statements
+While loops
+For loops
+Functions
+Compile time memory assignment
+
+Basic Syntax
+""""""""""""
+Every line of Phemton code requires a semi colon at the end, and code scopes are created by curly brackets. 
+Assignment:
+<Identifier> <Assigner> <Expression>
+<Declaration> <Assigner> <Expression>
+<ArrayIdentifier> <Assigner> <ArrayExpression>
+<ArrayDeclaration> <Assigner> <ArrayExpression>
+
+Other:
+<Identifier> ++
+<Identifier> --
+
+Identifier:
+<Identifier>
+<ArrayIdentifier>[<Expression>]
+
+ArrayIdentifier:
+<ArrayIdentifier>
+
+Declaration:
+<Type> <Identifier>
+
+ArrayDeclaration:
+<ArrayType>[<Const>] <Identifier>
+
+Expression:
+<Const>
+<Identifier>
+<Expression> <Operator> <Expression>
+<Negator> <Expression>
+(<Expression>)
+
+Boolean:
+<BooleanConst>
+<Expression> <Comparator> <Expression>
+<Boolean> <BooleanOperator> <Boolean>
+(<Boolean>)
+<BooleanNegator> <Boolean>
+
+Type:
+int
+char
+bool
+
+ArrayType:
+array
+string
+
+Comparator:
+==
+<>
+<=
+>=
+<
+>
+
+Assigner:
+=
++=
+-=
+*=
+\=
+%=
+&=
+|=
+^=
+
+Operator:
++
+-
+*
+/
+%
+&
+|
+^
+>>
+<<
+
+Negator:
+!
+-
+
+BooleanOperator:
+and
+or
+xor
+nand
+nor
+xnor
+
+BooleanNegator:
+not
+
+BooleanConst:
+true
+false
+
+If:
+if <Boolean> {
+  <Code>
+}
+elif <Boolean> {
+  <Code>
+}
+else {
+  <Code>
+}
+
+For:
+for <Identifier> in <Expression> to <Expression> {
+  <Code>
+}
+for <Identifier> in <ArrayExpression> {
+  <Code>
+}
+
+While:
+while <Boolean> {
+  <Code>
+}
+
+Functions:
+<Type> def <Identifier> (<Paramaters>) {
+  <Code>
+  return <Expression>
+}
+<ArrayType> def <Identifier> (<Paramaters>) {
+  <Code>
+  return <ArrayExpression>
+}
+def <Identifier> (<Paramaters>) {
+  <Code>
+}
+
+Other Keywords:
+pause
+graphics
+pop(<Identifier>)
+push(<Expression>)
+
+Whilst Phemton Lite requires type declarations, Phemton Lite is not particularly thorough with typing, treating characters and integers interchangeably, allowing operators to act on both. Arrays are arrays of integers, and strings are arrays of characters. Since variables are assigned during compile time, arrays must have a known length during compile time and therefore must have a given, constant length. Variable identifiers must not start with a digit, and can use upper and lower case letters, and _. Number consts can be in denary, hexadecimal, and binary. Hexadecimal consts start with 0x, and binary consts start with 0b. Phemton Plus will take more care between different types, particularly int/chars, longs, and floats. 
+
+Phemton Lite assigns variables memory addresses at compile time, so all uniquely identified variables have a global address. This can result in strange behaviours particularly with function calls. In order to correctly perform recursion, all local variables must be pushed onto the stack, before the recursive call, since the recursive call will overwrite the previous local variables. 
+
+Phemton Lite operators have the correct priority, performing multiplication and division before multiplication. &, |, and ^ are the boolean operators AND, OR, and XOR. 
+
+For loops, while loops, and functions behave mostly as one would expect, with the global variable memory assignment.
+The pause keyword corresponds directly to the PWS assembly instruction.
+The graphics keywords corresponds directly to the GRF assembly instruction.
+pop(<Identifier>) pops a value from the stack andd puts it in the identifier. 
+push(<Expression>) pushes the value of the expression onto the stack. 
+
+Phemton Lite also has several default variables which correspond to special addresses for the computer. These are: 
+TTY to interact with the TTY
+keyboard to interact with the keyboard
+mode for the mode register
+protect for the protect register
+select for the select register
+random for the RNG
+debugOut for the debug output
+accumulator2 for the second accumulator2
+stackPointer for the stack pointer
+flag for the flag register
+sprite<number>colour for sprite <number>'s colour
+sprite<number>coordinates for sprite <number>'s coordinates
+The sprites are numbered from 0 to 31, with sprite 31 being the top sprite. 
+
+Comments are written after a #, and continue to the end of the line.
+Characters are marked by a ' before the character itself, such as 'a
+Strings are surrounded on both sides by "
+
+Example Code
+""""""""""""
+View Phemton Lite Test Code 3. 
+
+Known Bugs:
+"""""""""""
+Boolean variables not working correctly
+For loops in function output
+<< and >> not working
