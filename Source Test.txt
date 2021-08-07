@@ -1,0 +1,59 @@
+int x = 1; #Do something
+int y = 23242423; #Do something else
+int z = x+y; #Still doing things
+z++;
+string[3] k = "xyz";
+char s = 'f;
+bool thing = true;
+array[4] numbers;
+numbers[0] = 3;
+numbers[1+x] = 2342432;
+numbers[3] = 1324324;
+y /= 4;
+x += 3 * (z / 3);
+x = -1*-4;
+int w;
+if z==x+y{
+  w=2;
+}
+elif 4<>4{
+  w=3;
+}
+elif 3>=2{
+  w=4;
+}
+else {
+  w=5;
+}
+#x = 1;
+for i in 0 to 4{
+  x /= y;
+}
+x += 1;
+for i in numbers{
+  x = i+1;
+}
+y += 2;
+for i in k{
+  s = i;
+}
+while x == 1{
+  x += 1;
+  x %= 50;
+}
+x = 2;
+int def func (int a, int b) {
+  return a+b;
+}
+def func2 (int a, int b) {
+  int r = a+b;
+}
+func2(x,y);
+pause;
+graphics;
+pop(x);
+push(y);
+x = func(y,z);
+3+2*6+5/4*5-2;
+3+2*(6+5)/4*(5-2);
+(1+(1*2)+3*(4-5+(6)));
