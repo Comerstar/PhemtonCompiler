@@ -1,0 +1,232 @@
+def printHelloWorld () {
+  TTY = 0;
+  string[38] printString = "Hello World! Phemton Lite vA1.0 lives!";
+  while true {
+    for i in printString {
+      TTY = i;
+      pause;
+    }
+    TTY = 0;
+  }
+}
+
+def copyKeyboard () {
+  TTY = 0;
+  while true {
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+    }
+  }
+}
+
+def copyKeyboardIndirectTest () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num[i] = keyboard;
+      TTY = num[i];
+    }
+  }
+}
+
+#Converts an integer into a string
+string[5] def intToStr (int number) {
+  string[5] result = "00000";
+  int i = 4;
+  while (i >= 0) and (number <> 0) {
+    result[i] = (number % 10) | 0x0030;
+    number /= 10;
+    i--;
+    pause;
+  }
+  return result;
+}
+
+#Converts a string of digits to a binary number. Expects digit 0 to be the most significant bit
+int def strToInt(string[5] stringNumber) {
+  int result = 0;
+  for i in stringNumber {
+    int rawDigit = i & 0x000f;
+    result *= 10;
+    result += rawDigit;
+  }
+  return result;
+}
+
+#Allows the user to input two numbers and the operator and outputs the result
+def operateNumbers () {
+  string[50] printMessage1 = "When inputting numbers enter _ to denote the end. ";
+  string[23] printMessage2 = "Please input number 1: ";
+  string[23] printMessage3 = "Please input number 2: ";
+  string[27] printMessage4 = "Please input the operator: ";
+  string[8] printMessage5 = "Result: ";
+  TTY = 0;
+  for i in printMessage1 {
+    TTY = i;
+  }
+  while true {
+    int num1;
+    int num2;
+    int result;
+    string[5] numString1 = "00000";
+    string[5] numString2 = "00000";
+    string[5] resultString = "00000";
+    for i in printMessage2 {
+      TTY = i;
+    }
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString1[j] = numString1[j+1];
+            j++;
+            pause;
+          }
+          numString1[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
+      }
+    }
+    TTY = ' ;
+    for i in printMessage3 {
+      TTY = i;
+    }
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString2[j] = numString2[j+1];
+            j++;
+            pause;
+          }
+          numString2[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
+      }
+    }
+    num1 = strToInt(numString1);
+    num2 = strToInt(numString2);
+    TTY = ' ;
+    for i in printMessage4 {
+      TTY = i;
+    }
+    keyboard = 0;
+    int validDigit = 0;
+    while validDigit == 0 {
+      keyboard = 1;
+      while keyboard == 0 {
+        keyboard = 1;
+      }
+      if keyboard == '+ {
+        result = num1 + num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '- {
+        result = num1 - num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '* {
+        result = num1 * num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '/ {
+        result = num1 / num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '& {
+        result = num1 & num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '| {
+        result = num1 | num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '^ {
+        result = num1 ^ num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+    }
+    TTY = ' ;
+    for i in printMessage5 {
+      TTY = i;
+    }
+    resultString = intToStr(result);
+    for i in resultString {
+      TTY = i;
+    }
+    TTY = ' ;
+  }
+}
+
+pause;
+pause;
+mode = 0x2007;
+pause;
+pause;
+
+string[52] opening = "Enter the number of the test code you wish to view. ";
+string[16] invalidInput = "Invalid Number. ";
+for i in opening {
+  TTY = i;
+}
+while true {
+  int keyboardValue = 0;
+  while keyboardValue == 0 {
+    keyboard = 1;
+    keyboardValue = keyboard;
+    pause;
+  }
+  if keyboardValue == 0x0031 {
+    printHelloWorld();
+  }
+  elif keyboardValue == 0x0032 {
+    copyKeyboard();
+  }
+  elif keyboardValue == 0x0033 {
+    operateNumbers();
+  }
+  elif keyboardValue == 0x0034 {
+    copyKeyboardIndirectTest();
+  }
+  else {
+    for i in invalidInput {
+      TTY = i;
+    }
+  }
+}

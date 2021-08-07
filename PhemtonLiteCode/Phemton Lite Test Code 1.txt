@@ -1,0 +1,7 @@
+while true{
+  keyboard = 1;
+  if keyboard <> 0
+  {
+    TTY = keyboard;
+  }
+}

@@ -1,0 +1,10 @@
+string[38] printString = "Hello World! Phemton Lite vA1.0 lives!";
+while true
+{
+  for i in printString
+  {
+    TTY = i;
+    pause;
+  }
+  TTY = 0;
+}
