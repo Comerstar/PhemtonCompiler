@@ -1,7 +1,10 @@
 
 #The Assembler for the Femto-4 found on CircuitVerse.
 #Refer to Developer Guide.txt if you want to understand what this is for. 
-print("Running")
+
+debug = False
+if debug:
+  print("Running")
 
 
 #This thing was not programmed to be robust. 
@@ -64,7 +67,7 @@ def convertCharIntoDecimal(character):
 
 def assembler():
   #Basic opcodes
-  AssemblyCodes1 = {"PWS": "0000", "GRF": "0001", "LDV": "1000", "LDD": "1001", "LDI": "1002", "LDP": "1004", "LDA": "1005", 
+  AssemblyCodes1 = {"PWS": "0000", "GRF": "0001", "NOP": "0002", "LDV": "1000", "LDD": "1001", "LDI": "1002", "LDP": "1004", "LDA": "1005", 
                     "LIV": "1008", "LID": "1009", "LII": "100a", "LIP": "100c", "LIA": "100d", "PSV": "4000", "PSD": "4001", 
                     "PPD": "4002", "PSI": "4003", "PPI": "4004", "JMP": "5000", "JPD": "5001"}
   #ALU opcodes
@@ -139,7 +142,7 @@ def assembler():
     line = line.split("#")[0]
     
     #Get the actual instruction
-    instruction = (" " + line).split("#")[0].split("//")[0].split("%")[0].split("!")[0].split()
+    instruction = (" " + line).split("#")[0].split("//")[0].split("/>")[0].split("%")[0].split("!")[0].split()
 
     #Check to see if variable being assigned
     splitLine = line.split("%")
@@ -219,6 +222,13 @@ def assembler():
         address += 1
       inter.write("#" + decimal_to_hex(startAddress))
       inter.write("\n")
+      
+      splitLine = line.split("/>")
+      if len(splitLine) > 1:
+        addressNameList = splitLine[-1].strip().split(" ")
+        for i in addressNameList:
+          addresses[i] = decimal_to_hex(address)
+          
     lineNum += 1
 
   assem.close()
@@ -489,15 +499,21 @@ class CodeLine():
     self.assemblyCode = assemblyCode
     self.operands = operands
     self.nextLine = nextLine
-    self.name = name
+    if name == None:
+      self.name = []
+    else:
+      self.name = [name]
     self.nextLineCode = nextLine
     
   def __str__(self):
     result = self.assemblyCode
     for i in self.operands:
       result += " " + str(i)
-    if self.name != None:
-      result += " //" + self.name
+    if self.name != []:
+      resultName = ""
+      for i in self.name:
+        resultName += " " + i
+      result += " />" + resultName
     return result
   
   def __repr__(self):
@@ -528,22 +544,32 @@ class CodeLine():
       return self
     
   def setName(self, name):
-    self.name = name
+    if name == None:
+      self.name = []
+    else:
+      self.name = [name]
+      
+  def removeName(self, name):
+    if name in self.name:
+      self.name.remove(name)
     
   def addName(self, name):
     if name != None:
-      if self.name == None:
-        self.name = name
-      else:
-        self.name += " " + name
+      self.name.append(name)
     
   def printAllCode(self):
     #print("Called print all on ", self)
     result = self.assemblyCode
     for i in self.operands:
       result += " " + str(i)
-    if self.name != None:
-      result += " //" + self.name
+    if self.name != []:
+      resultName = ""
+      for i in self.name:
+        try:
+          resultName += " " + i
+        except:
+          raise Exception("Invalid name in", i)
+      result += " />" + resultName
     if self.nextLine != self.nextLineCode:
       result += " #-> " + str(self.nextLine)
     if self.nextLineCode != None:
@@ -558,8 +584,11 @@ class CodeLine():
     result = self.assemblyCode
     for i in self.operands:
       result += " " + str(i)
-    if self.name != None:
-      result += " //" + self.name
+    if self.name != []:
+      resultName = ""
+      for i in self.name:
+        resultName += " " + i
+      result += " />" + resultName
     if self.nextLine != None:
       result += "\n"
       result += self.nextLine.printAll()
@@ -581,8 +610,11 @@ class ConditionalLine(CodeLine):
     result = self.assemblyCode
     for i in self.operands:
       result += " " + str(i)
-    if self.name != None:
-      result += "//" + self.name
+    if self.name != []:
+      resultName = ""
+      for i in self.name:
+        resultName += " " + i
+      result += " />" + resultName
     if self.nextLineFalse != None:
       result += " #=> " + str(self.nextLineFalse)
     if self.nextLineCode != self.nextLine:
@@ -599,8 +631,11 @@ class ConditionalLine(CodeLine):
     result = self.assemblyCode
     for i in self.operands:
       result += " " + str(i)
-    if self.name != None:
-      result += "//" + self.name
+    if self.name != []:
+      resultName = ""
+      for i in self.name:
+        resultName += " " + i
+      result += " />" + resultName
     if self.nextLineFalse != None:
       result += "->" + str(self.nextLineFalse)
     if self.nextLine != None:
@@ -633,12 +668,13 @@ def convertToNumber(stringInt):
     return int(stringInt) #Denary
 
 def constructTree(line):
+  global debug
   #print(line)
   keyOperator = -1
   #keyOperatorEnd = -1
   keyOperatorType = "NONE"
   operatorType = "NONE"
-  priorityArray = ["KEYWORD", "ASSIGNER", "MODIFIER", "TYPE", "ARRAY_TYPE", "BOOLEAN_OPERATOR", "COMPARATOR", "SUBSCRIPT", "OPERATOR", "NEGATOR", "NUMBER", "CHAR", "STRING", "IDENTIFIER", "EXPRESSION", "PARAMETERS", "NONE"]
+  priorityArray = ["KEYWORD", "ASSIGNER", "MODIFIER", "TYPE", "ARRAY_TYPE", "BOOLEAN_OPERATOR", "COMPARATOR", "SUBSCRIPT", "OPERATOR", "NEGATOR", "SLICE", "NUMBER", "CHAR", "STRING", "IDENTIFIER", "EXPRESSION", "ARRAY", "PARAMETERS", "NONE"]
   #operatorPriorityArray = [["&", "|", "^", ">>", "<<"], ["+", "-"], ["*", "/", "%"], "NONE"]
   operatorPriorityDictionary = {"&": 1, "|": 1, "^": 1, ">>": 1, "<<": 1, "+": 2, "-": 2, "*": 3, "/":3, "%":3, "NONE": 4}
   if len(line) == 0:
@@ -652,12 +688,16 @@ def constructTree(line):
         codeTree.append(constructTree(i))
       return codeTree
     elif line[0][1] == "SUBSCRIPT":
-      print(line)
+      if debug:
+        print(line)
+        pass
       return StatementTree([], constructTree(line[0][0]),["[]", "SUBSCRIPT"])
     return line[0]
   else:
     for i in range(len(line)):
-      #print(line[i])
+      if debug:
+        #print("Line:", line[i])
+        pass
       if line[i][1] == "KEYWORD" and priorityArray.index(keyOperatorType) > priorityArray.index("KEYWORD"):
         keyOperator = i
         keyOperatorType = "KEYWORD"
@@ -690,19 +730,28 @@ def constructTree(line):
       elif line[i][1] == "NEGATOR" and priorityArray.index(keyOperatorType) > priorityArray.index("NEGATOR"):
         keyOperator = i
         keyOperatorType = "NEGATOR"
+      elif line[i][1] == "SLICE" and priorityArray.index(keyOperatorType) > priorityArray.index("SLICE"):
+        keyOperator = i
+        keyOperatorType = "SLICE"
       elif line[i][1] == "PARAMETERS" and priorityArray.index(keyOperatorType) > priorityArray.index("PARAMETERS"):
         keyOperator = i
         keyOperatorType = "PARAMETERS"
+      elif line[i][1] == "ARRAY" and priorityArray.index(keyOperatorType) > priorityArray.index("ARRAY"):
+        keyOperator = i
+        keyOperatorType = "ARRAY"
     if keyOperator == -1:
       print(line)
       raise Exception("Failed to find operator in: " + str(line))
     if keyOperatorType == "SUBSCRIPT":
-      print(line)
+      if debug:
+        print("SUBSCRIPT line:", line)
+        pass
       if keyOperator == 0:
         return StatementTree(constructTree(line[keyOperator+1:len(line)]), constructTree(line[keyOperator][0]),["[]", "SUBSCRIPT"])
       elif keyOperator == len(line) - 1:
         return StatementTree(constructTree(line[0:keyOperator]), constructTree(line[keyOperator][0]), ["[]", "SUBSCRIPT"])
       else:
+        print(keyOperator, len(line) - 1)
         raise Exception("Unaccounted case in: ", line)
     elif keyOperatorType == "PARAMETERS":
       if keyOperator == len(line) - 1:
@@ -711,6 +760,15 @@ def constructTree(line):
         for i in line[keyOperator][0]:
           parametersTree.append(constructTree(i))
         return StatementTree(constructTree(line[0:keyOperator]), parametersTree, ["()", "PARAMETERS"])
+      else:
+        raise Exception("Unaccounted case in: ", line)
+    elif keyOperatorType == "ARRAY":
+      if keyOperator == len(line) - 1:
+        #print(line[keyOperator])
+        parametersTree = []
+        for i in line[keyOperator][0]:
+          parametersTree.append(constructTree(i))
+        return StatementTree(constructTree(line[0:keyOperator]), parametersTree, ["[]", "ARRAY"])
       else:
         raise Exception("Unaccounted case in: ", line)
     else:
@@ -803,10 +861,19 @@ def sortIntoLines(tokenList):
         squareCount -= 1
         tokenBracket.append(i)
         if squareCount == 0:
-          temp = sortBracket(tokenBracket[1:-1])
-          tokenLine.append([temp, "SUBSCRIPT"])
+          if previousType in ["IDENTIFIER", "KEYWORD", "ARRAY_TYPE"]:
+            temp = sortBracket(tokenBracket[1:-1])
+            tokenLine.append([temp,"SUBSCRIPT"])
+            previousType = "SUBSCRIPT"
+            previousType = "SUBSCRIPT"
+          elif previousType in ["OPERATOR", "ASSIGNER", "NEGATOR"]:
+            temp = sortParameter(tokenBracket[1:-1])
+            tokenLine.append([temp,"ARRAY"])
+            previousType = "ARRAY"
+            previousType = "ARRAY"
+          else:
+            raise Exception("Invalid sqaure bracket")
           gettingBracket = "NONE"
-          previousType = "SUBSCRIPT"
       else:
         tokenBracket.append(i)
     
@@ -884,8 +951,18 @@ def sortBracket(tokenList):
         tokenBracket.append(i)
         if squareCount == 0:
           temp = sortBracket(tokenBracket[1:-1])
-          tokensByLine.append([temp,"SUBSCRIPT"])
-          previousType = "SUBSCRIPT"
+          if previousType in ["IDENTIFIER", "KEYWORD"]:
+            temp = sortBracket(tokenBracket[1:-1])
+            tokensByLine.append([temp, "SUBSCRIPT"])
+            previousType = "SUBSCRIPT"
+            previousType = "SUBSCRIPT"
+          elif previousType in ["OPERATOR", "ASSIGNER", "NEGATOR"]:
+            temp = sortParameter(tokenBracket[1:-1])
+            tokensByLine.append([temp, "ARRAY"])
+            previousType = "ARRAY"
+            previousType = "ARRAY"
+          else:
+            raise Exception("Invalid square bracket")
           gettingBracket = "NONE"
       else:
         tokenBracket.append(i)
@@ -915,6 +992,7 @@ def sortBracket(tokenList):
   return tokensByLine
 
 def sortParameter(tokenList):
+  global debug
   tokensByLine = []
   tokenLine = []
   tokenBracket = []
@@ -924,6 +1002,8 @@ def sortParameter(tokenList):
   gettingBracket = "NONE"
   previousType = "NONE"
   for i in tokenList:
+    if debug:
+      print("Paramters i:", i)
     if gettingBracket == "NONE":
       if i[1] == "RETURN":
         raise Exception("EOL without closing bracket")
@@ -971,9 +1051,19 @@ def sortParameter(tokenList):
         tokenBracket.append(i)
         if squareCount == 0:
           temp = sortBracket(tokenBracket[1:-1])
-          tokenLine.append([temp, "SUBSCRIPT"])
+          if previousType in ["IDENTIFIER", "KEYWORD", "ARRAY_TYPE"]:
+            temp = sortBracket(tokenBracket[1:-1])
+            tokenLine.append([temp,"SUBSCRIPT"])
+            previousType = "SUBSCRIPT"
+            previousType = "SUBSCRIPT"
+          elif previousType in ["OPERATOR", "ASSIGNER", "NEGATOR"]:
+            temp = sortParameter(tokenBracket[1:-1])
+            tokenLine.append([temp,"ARRAY"])
+            previousType = "ARRAY"
+            previousType = "ARRAY"
+          else:
+            raise Exception("Invalid square bracket")
           gettingBracket = "NONE"
-          previousType = "SUBSCRIPT"
       else:
         tokenBracket.append(i)
     
@@ -1001,9 +1091,15 @@ def sortParameter(tokenList):
   if (len(tokenLine) != 0):
     tokensByLine.append(tokenLine)
         
+  if debug:
+    print("Parameter tokenList: ", tokenList)
+    print("Parameter tokenLine: ", tokenLine)
+    print("Parameter tokensByLine: ", tokensByLine)
+    pass
   return tokensByLine
 
 def determineTypeOfCode(tree, varScope, arrayScope, funcScope, number, totalScope):
+  global debug
   if isinstance(tree, list):
     nextScope = None
     nextArrayScope = None
@@ -1052,9 +1148,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
       rightType = rightTemp[0]
       tree.left = leftTemp[5]
       tree.right = rightTemp[5]
-      if (leftType in ["CHAR", "INT"]) and (rightType in ["CHAR", "INT", "CHAR_CONST", "INT_CONST"]):
-        return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
-      elif (leftType == "BOOLEAN") and (rightType in ["BOOLEAN", "BOOLEAN_CONST"]):
+      if (leftType in ["CHAR", "INT", "BOOLEAN"]) and (rightType in ["CHAR", "INT", "BOOLEAN", "CHAR_CONST", "INT_CONST", "BOOLEAN_CONST"]):
         return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
       elif (leftType in ["ARRAY", "STRING"] and rightType in ["ARRAY", "STRING", "ARRAY_CONST", "STRING_CONST"]):
         return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
@@ -1075,7 +1169,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
           funcScope = leftTemp[3]
           leftType = leftTemp[0]
           tree.left = leftTemp[5]
-          if (leftType in ["CHAR", "INT"]):
+          if (leftType in ["CHAR", "INT", "BOOLEAN"]):
             return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
           elif (leftType in ["ARRAY", "STRING"]):
             return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
@@ -1094,7 +1188,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
         rightType = rightTemp[0]
         tree.left = leftTemp[5]
         tree.right = rightTemp[5]
-        if (leftType in ["CHAR", "INT"]) and (rightType in ["CHAR", "INT", "CHAR_CONST", "INT_CONST"]):
+        if (leftType in ["CHAR", "INT", "BOOLEAN"]) and (rightType in ["CHAR", "INT", "BOOLEAN", "CHAR_CONST", "INT_CONST", "BOOLEAN_CONST"]):
           return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
         elif (leftType in ["ARRAY", "STRING"] and rightType in ["ARRAY", "STRING", "ARRAY_CONST", "STRING_CONST"]):
           return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
@@ -1175,13 +1269,15 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
       rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
       rightType = rightTemp[0]
       tree.right = rightTemp[5]
-      if rightType == "CHAR_CONST":
-        rightType = "CHAR"
-      elif rightType == "INT_CONST":
+      if rightType == "INT_CONST":
         rightType = "INT"
-      if leftType == "ARRAY" and rightType in ["CHAR", "INT"]:
+      elif rightType == "CHAR_CONST":
+        rightType = "CHAR"
+      elif rightType == "BOOLEAN_CONST":
+       rightType = "BOOLEAN"
+      if leftType == "ARRAY" and rightType in ["CHAR", "INT", "BOOLEAN"]:
         return "INT", varScope, arrayScope, funcScope, number, tree, None, None
-      elif leftType == "STRING" and rightType in ["CHAR", "INT"]:
+      elif leftType == "STRING" and rightType in ["CHAR", "INT", "BOOLEAN"]:
         return "CHAR", varScope, arrayScope, funcScope, number, tree, None, None
       else:
         print(leftType, rightType)
@@ -1203,11 +1299,33 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
             temp[0] = "INT"
           elif temp[0] == "CHAR_CONST":
             temp[0] == "CHAR"
+          elif temp[0] == "BOOLEAN_CONST":
+            temp[0] == "BOOLEAN"
           parameters.append([temp[0], 0])
         tempFunc = funcScope.getFunction(identifier, parameters)
         #print(identifier, parameters)
         tree.left[0] = tempFunc[3]
         return tempFunc[1], varScope, arrayScope, funcScope, number, tree, None, None
+        
+    #ARRAY
+    elif tree.operator[1] == "PARAMETERS":
+      if not isinstance(tree.left, list) or not isinstance(tree.right, list):
+        raise Exception("Invalid function call in: " + tree.cleanPrint())
+      elif not tree.left != []:
+        raise Exception("Invalid function call in: " + tree.cleanPrint())
+      else:
+        for i in tree.right:
+          temp = determineType(i, varScope, arrayScope, funcScope, number)
+          i = temp[5]
+          if temp[0] == "INT_CONST":
+            temp[0] = "INT"
+          elif temp[0] == "CHAR_CONST":
+            temp[0] == "CHAR"
+          elif temp[0] == "BOOLEAN_CONST":
+            temp[0] == "BOOLEAN"
+          if temp[0] not in ["INT", "CHAR", "BOOLEAN"]:
+            raise Exception("Invalid elements of array in: " + tree.cleanPrint())
+        return "ARRAY", varScope, arrayScope, funcScope, number, tree, None, None
         
     #KEYWORD
     elif tree.operator[1] == "KEYWORD":
@@ -1266,7 +1384,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
           rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
           rightType = rightTemp[0]
           tree.right = rightTemp[5]
-          if rightType in ["INT", "CHAR"]:
+          if rightType in ["INT", "CHAR", "BOOLEAN"]:
             return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
           else:
             raise Exception("Invalid pop in: " + tree.cleanPrint())
@@ -1278,7 +1396,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
           rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
           rightType = rightTemp[0]
           tree.right = rightTemp[5]
-          if rightType in ["INT", "CHAR", "INT_CONST", "CHAR_CONST"]:
+          if rightType in ["INT", "CHAR", "BOOLEAN", "INT_CONST", "CHAR_CONST", "BOOLEAN_CONST"]:
             return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
           else:
             raise Exception("Invalid pop in: " + tree.cleanPrint())
@@ -1302,11 +1420,15 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
                   leftType = "INT"
                 elif leftType == "CHAR_CONST":
                   leftType = "CHAR"
+                elif leftType == "BOOLEAN_CONST":
+                  leftType = "BOOLEAN"
                 if rightType == "INT_CONST":
                   rightType = "INT"
                 elif rightType == "CHAR_CONST":
                   rightType = "CHAR"
-                if leftType in ["CHAR", "INT"] and rightType in ["CHAR", "INT"]:
+                elif rightType == "BOOLEAN_CONST":
+                 rightType = "BOOLEAN"
+                if leftType in ["CHAR", "INT", "BOOLEAN"] and rightType in ["CHAR", "INT", "BOOLEAN"]:
                   nextScope = VariableScope(varScope)
                   tree.right.left[0] = nextScope.addVariable(tree.right.left[0], "INT", number)
                   number += 1
@@ -1406,6 +1528,9 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
                 raise Exception("Invalid function declaration in: " + tree.cleanPrint())
               elif not isinstance(i.right.left, list):
                 raise Exception("Invalid function declaration in: " + tree.cleanPrint())
+              elif len(i.right.left) != 2:
+                print(i.right.left)
+                raise Exception("Invalid function declaration in: " + tree.cleanPrint())
               elif i.right.left[1] != "IDENTIFIER":
                 raise Exception("Invalid function declaration in: " + tree.cleanPrint())
               else:
@@ -1472,10 +1597,6 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
           rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
           tree.right = rightTemp[5]
           return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
-          
-      #JUMP
-      elif tree.operator[0] == "jump":
-        pass
       
     #COMPARATOR
     elif tree.operator[1] == "COMPARATOR":
@@ -1489,11 +1610,15 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
         leftType = "INT"
       elif leftType == "CHAR_CONST":
         leftType = "CHAR"
+      elif leftType == "BOOLEAN_CONST":
+        leftType = "BOOLEAN"
       if rightType == "INT_CONST":
         rightType = "INT"
       elif rightType == "CHAR_CONST":
         rightType = "CHAR"
-      if leftType in ["CHAR", "INT"] and rightType in ["CHAR", "INT"]:
+      elif rightType == "BOOLEAN_CONST":
+       rightType = "BOOLEAN"
+      if leftType in ["CHAR", "INT", "BOOLEAN"] and rightType in ["CHAR", "INT", "BOOLEAN"]:
         return "BOOLEAN", varScope, arrayScope, funcScope, number, tree, None, None
       else:
         raise Exception("Invalid types around operator in: " + tree.cleanPrint())
@@ -1506,9 +1631,19 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
       rightType = rightTemp[0]
       tree.left = leftTemp[5]
       tree.right = rightTemp[5]
-      if leftType == "BOOLEAN_CONST":
+      if leftType == "INT_CONST":
+        leftType = "INT"
+      elif leftType == "CHAR_CONST":
+        leftType = "CHAR"
+      elif leftType == "BOOLEAN_CONST":
         leftType = "BOOLEAN"
-      elif leftType == "BOOLEAN" and rightType == "BOOLEAN":
+      if rightType == "INT_CONST":
+        rightType = "INT"
+      elif rightType == "CHAR_CONST":
+        rightType = "CHAR"
+      elif rightType == "BOOLEAN_CONST":
+       rightType = "BOOLEAN"
+      elif leftType in ["CHAR", "INT", "BOOLEAN"] and rightType in ["CHAR", "INT", "BOOLEAN"]:
         return "BOOLEAN", varScope, arrayScope, funcScope, number, tree, None, None
       else:
         print(leftType, rightType)
@@ -1526,14 +1661,18 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
         leftType = "INT"
       elif leftType == "CHAR_CONST":
         leftType = "CHAR"
+      elif leftType == "BOOLEAN_CONST":
+        leftType = "BOOLEAN"
       if rightType == "INT_CONST":
         rightType = "INT"
       elif rightType == "CHAR_CONST":
         rightType = "CHAR"
-      if (leftType == "INT" or rightType == "INT") and (leftType in ["CHAR", "INT"] and rightType in ["CHAR", "INT"]):
-        return "INT", varScope, arrayScope, funcScope, number, tree, None, None
-      elif leftType == "CHAR" and rightType == "CHAR":
+      elif rightType == "BOOLEAN_CONST":
+       rightType = "BOOLEAN"
+      if leftType == "CHAR" and rightType == "CHAR":
         return "CHAR", varScope, arrayScope, funcScope, number, tree, None, None
+      elif (leftType in ["CHAR", "INT", "BOOLEAN"] and rightType in ["CHAR", "INT", "BOOLEAN"]):
+        return "INT", varScope, arrayScope, funcScope, number, tree, None, None
       else:
         print(leftType, rightType)
         raise Exception("Invalid types around operator in: " + tree.cleanPrint())
@@ -1542,7 +1681,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
     elif tree.operator[1] == "NEGATOR":
       if tree.left != []:
         raise Exception("Invalid negation in: " + tree.cleanPrint())
-      elif tree.operator[0] == "-":
+      else:
         rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
         rightType = rightTemp[0]
         tree.right = rightTemp[5]
@@ -1550,36 +1689,23 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
           rightType = "INT"
         elif rightType == "CHAR_CONST":
           rightType = "CHAR"
+        elif rightType == "BOOLEAN_CONST":
+         rightType = "BOOLEAN"
         if rightType == "INT":
-          return "INT", varScope, arrayScope, funcScope, number, tree, None, None
+          if tree.operator[0] == "not":
+            return "BOOLEAN", varScope, arrayScope, funcScope, number, tree, None, None
+          else:
+            return "INT", varScope, arrayScope, funcScope, number, tree, None, None
         elif rightType == "CHAR":
-          return "CHAR", varScope, arrayScope, funcScope, number, tree, None, None
-        else:
-          print(leftType, rightType)
-          raise Exception("Invalid types around operator in: " + tree.cleanPrint())
-      elif tree.operator[0] == "!":
-        rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
-        rightType = rightTemp[0]
-        tree.right = rightTemp[5]
-        if rightType == "INT_CONST":
-          rightType = "INT"
-        elif rightType == "CHAR_CONST":
-          rightType = "CHAR"
-        if rightType == "INT":
-          return "INT", varScope, arrayScope, funcScope, number, tree, None, None
-        elif rightType == "CHAR":
-          return "CHAR", varScope, arrayScope, funcScope, number, tree, None, None
-        else:
-          print(leftType, rightType)
-          raise Exception("Invalid types around operator in: " + tree.cleanPrint())
-      elif tree.operator[0] == "not":
-        rightTemp = determineType(tree.right, varScope, arrayScope, funcScope, number)
-        rightType = rightTemp[0]
-        tree.right = rightTemp[5]
-        if rightType == "BOOLEAN_CONST":
-          rightType == "BOOLEAN"
-        if rightType == "BOOLEAN":
-          return "BOOLEAN", varScope, arrayScope, funcScope, number, tree, None, None
+          if tree.operator[0] == "not":
+            return "BOOLEAN", varScope, arrayScope, funcScope, number, tree, None, None
+          else:
+            return "CHAR", varScope, arrayScope, funcScope, number, tree, None, None
+        elif rightType == "BOOLEAN":
+          if tree.operator[0] == "not":
+            return "BOOLEAN", varScope, arrayScope, funcScope, number, tree, None, None
+          else:
+            return "INT", varScope, arrayScope, funcScope, number, tree, None, None
         else:
           print(leftType, rightType)
           raise Exception("Invalid types around operator in: " + tree.cleanPrint())
@@ -1640,6 +1766,12 @@ def removeDeclarations(tree):
         parameters.append(removeDeclarations(i))
       tree.right = parameters
       return(tree)
+    elif tree.operator[1] == "ARRAY":
+      elements = []
+      for i in tree.right:
+        elements.append(removeDeclarations(i))
+      tree.right = elements
+      return(tree)
     else:
       tree.left = removeDeclarations(tree.left)
       tree.right = removeDeclarations(tree.right)
@@ -1683,23 +1815,29 @@ def removeEmptyLines(tree):
 
 def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHeader = None):
   startPreviousLine = previousLine
+  jumpNumber = number
   if isinstance(tree, list):
     i = 0
-    handlingIf = False
-    elseAppeared = False
-    jumpNumber = number
-    previousConditional = None
-    previousConditionalName = None
-    beginWhileName = None
-    whileJump = None
-    beginWhileJump = None
-    whileConditional = False
     endIfName = None
-    endBranchJumpInstructions = []
+    previousConditionalName = None
+    handlingIf = False
     functionBlock = []
+    
+    def handlingIfFunc():
+      nonlocal handlingIf
+      nonlocal previousLine
+      nonlocal endIfName
+      if handlingIf:
+        if endIfName != None:
+          previousLine.addName(endIfName)
+          endIfName = None
+        handlingIf = False
+    
     while i < len(tree):
-      print("-----")
-      print(tree[i])
+      if debug:
+        print("-----")
+        print(tree[i])
+        pass
       if isinstance(tree[i], list):
         if len(tree[i]) == 2:
           
@@ -1708,87 +1846,253 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
             
             #ELSE
             if tree[i][0] == "else":
-              print("handling else")
-              if not handlingIf:
-                raise Exception("Loose else statement")
+              if endIfName == None:
+                endIfName = "jENDIF" + str(jumpNumber)
+                jumpNumber += 1
+              
+              if previousConditionalName != None:
+                previousLine.getLastLine().removeName(previousConditionalName)
+                previousLine.setLastLine(CodeLine("JMP", [endIfName], None))
+                previousLine.getLastLine().getLastLine().addName(previousConditionalName)
+                previousConditionalName = None
                 
-              elseAppeared = True
-              tempJump = CodeLine("JMP", [endIfName], None)
-              endBranchJumpInstructions.append(tempJump)
-              previousLine.setLastLine(tempJump)
               i += 1
-              temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousLine.getLastLine(), fullScope, number = jumpNumber)
-              temp.nextLine.addName(previousConditionalName)
-              previousConditional.setNextLineFalse(temp.nextLine)
-              previousConditionalName = ""
-              whileConditional = False
+              temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+              previousLine = temp[1]
+              jumpNumber = temp[2]
+              previousLine.getLastLine().addName(endIfName)
+              endIfName = None
+              handlingIf = False
               
             #PAUSE
             elif tree[i][0] == "pause":
+              handlingIfFunc()
               previousLine.setLastLine(CodeLine("PWS", [], None))
+              previousLine = previousLine.getLastLine()
               
             #GRAPHICS
             elif tree[i][0] == "graphics":
+              handlingIfFunc()
               previousLine.setLastLine(CodeLine("GRF", [], None))
+              previousLine = previousLine.getLastLine()
               
       elif isinstance(tree[i], StatementTree):
-        print("|" + tree[i].operator[0] + "|")
+        if debug:
+          print("|" + tree[i].operator[0] + "|")
+          pass
         
         #KEYWORD
         if tree[i].operator[1] == "KEYWORD":
           
           #IF
           if tree[i].operator[0] == "if":
-            temp1, temp, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i].right, fullScope, 0, jumpNumber)
-            if handlingIf:
-              temp1.nextLine.addName(endIfName)
-              if not elseAppeared:
-                temp1.nextLine.addName(previousConditionalName)
-                previousConditional.setNextLineFalse(temp1.nextLine)
-              for j in endBranchJumpInstructions:
-                j.setNextLine(temp1.nextLine)
-              if whileConditional:
-                previousLine = temp1.nextLine
-                whileJump.setNextLine(beginWhileJump)
-                whileJump = None
-                beginWhileJump = None
-              endBranchJumpInstructions = []
-              previousConditionalName = None
-              endIfName = None
-              previousConditional = None
-              
-            handlingIf = True
+            handlingIfFunc()
             
-            previousConditionalName = "jPASTIF" + str(jumpNumber)
-            previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-            jumpNumber += 1
-            previousLine.setLastLine(CodeLine("ANB INB", [0, temp[0]], None))
-            previousLine.setLastLine(previousConditional)
-            i += 1
-            temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-            whileConditional = False
+            temp = convertIntoPartial(previousLine, tree[i].right, fullScope, 0, jumpNumber)
+            previousLine = temp[1]
+            jumpNumber = temp[4]
+            result = temp[2]
+            
+            handlingIf = True
+            if len(result) == 1:
+              if result[0][1] == "CONST":
+                if result[0][0] == 0:
+                  i += 1
+                else:
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number = jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+              elif result[0][1] == "DIR":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousLine.setLastLine(CodeLine("ANB INB", [0, result[0][0]], None))
+                previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+                
+              elif result[0][1] == "IN":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
+                previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "FLAG0":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 20", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "FLAG1":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 08", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "FLAG2":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 02", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "NFLAG2":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 03", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              else:
+                raise Exception("Invalid type " + result[0][1] + " for condition in: " + tree[i].cleanPrint())
+            else:
+              raise Exception("Too many conditions for if statement in: " + tree[i].cleanPrint())
             
           #ELIF
           elif tree[i].operator[0] == "elif":
-            if not handlingIf or elseAppeared or (handlingIf and whileConditional):
-              raise Exception("Loose elif statement")
+            if not handlingIf:
+              raise Exception("Elif without if in: " + tree[i].cleanPrint())
+            
             if endIfName == None:
               endIfName = "jENDIF" + str(jumpNumber)
               jumpNumber += 1
-            tempJump = CodeLine("JMP", [endIfName], None)
-            endBranchJumpInstructions.append(tempJump)
-            previousLine.setLastLine(tempJump)
-            temp1, temp, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i].right, fullScope, 0, jumpNumber)
-            temp1.nextLine.addName(previousConditionalName)
-            previousConditional.setNextLineFalse(temp1.nextLine)
-            previousConditionalName = "jPASTIF" + str(jumpNumber)
-            previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-            jumpNumber += 1
-            previousLine.setLastLine(CodeLine("ANB INB", [0, temp[0]], None))
-            previousLine.setLastLine(previousConditional)
-            i += 1
-            temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-            whileConditional = False
+            
+            if previousConditionalName != None:
+              previousLine.getLastLine().removeName(previousConditionalName)
+              previousLine.setLastLine(CodeLine("JMP", [endIfName], None))
+              previousLine.getLastLine().addName(previousConditionalName)
+              previousConditionalName = None
+            
+            temp = convertIntoPartial(previousLine, tree[i].right, fullScope, 0, jumpNumber)
+            previousLine = temp[1]
+            jumpNumber = temp[4]
+            result = temp[2]
+            
+            if len(result) == 1:
+              if result[0][1] == "CONST":
+                if result[0][0] == 0:
+                  i += 1
+                else:
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+              elif result[0][1] == "DIR":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousLine.setLastLine(CodeLine("ANB INB", [0, result[0][0]], None))
+                previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+                
+              elif result[0][1] == "IN":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
+                previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "FLAG0":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 20", [pastJumpName], None, None)
+                previousLine.getLastLine().setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "FLAG1":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 08", [pastJumpName], None, None)
+                previousLine.getLastLine().setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "FLAG2":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 02", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "NFLAG2":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = ConditionalLine("JPF 03", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              else:
+                raise Exception("Invalid type " + result[0][1] + " for condition in: " + tree[i].cleanPrint())
+            else:
+              raise Exception("Too many conditions for if statement in: " + tree[i].cleanPrint())
             
           #ELSE
           elif tree[i].operator[0] == "else":
@@ -1796,1082 +2100,1174 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
             
           #FOR
           elif tree[i].operator[0] == "for":
+            handlingIfFunc()
             if isinstance(tree[i].right.right, StatementTree):
               if tree[i].right.right.operator[0] == "to":
+                counterIdentifier = tree[i].right.left
                 
-                counterIdentifier = tree[i].right.left[0]
+                tempLeft = convertIntoPartial(previousLine, StatementTree(counterIdentifier, tree[i].right.right.left, ["=", "ASSIGNER"]), fullScope, 0, jumpNumber)
+                jumpNumber = tempLeft[4]
+                previousLine = tempLeft[1]
                 
-                if isinstance(tree[i].right.right.left, list):
-                  if tree[i].right.right.left[1] in ["CHAR", "NUMBER"]:
-                    temp1 = CodeLine("LDV", [tree[i].right.right.left[0], counterIdentifier], None)
-                    previousLine.setLastLine(temp1)
-                    if handlingIf:
-                      temp1.addName(endIfName)
-                      if not elseAppeared:
-                        temp1.addName(previousConditionalName)
-                        previousConditional.setNextLineFalse(temp1)
-                      for j in endBranchJumpInstructions:
-                        j.setNextLine(temp1)
-                      if whileConditional:
-                        previousLine = temp1
-                        whileJump.setNextLine(beginWhileJump)
-                        whileJump = None
-                        beginWhileJump = None
-                      endBranchJumpInstructions = []
-                      previousConditionalName = None
-                      endIfName = None
-                      previousConditional = None
-                  elif fullScope[tree[i].right.right.left[0]][0] == "INT":
-                    previousLine.setLastLine(CodeLine("LDD", [tree[i].right.right.left[0], counterIdentifier], None))
-                    if handlingIf:
-                      temp1.addName(endIfName)
-                      temp1.addName(previousConditionalName)
-                      if not elseAppeared:
-                        previousConditional.setNextLineFalse(temp1)
-                      for j in endBranchJumpInstructions:
-                        j.setNextLine(temp1)
-                      if whileConditional:
-                        previousLine = temp1
-                        whileJump.setNextLine(beginWhileJump)
-                        whileJump = None
-                        beginWhileJump = None
-                      endBranchJumpInstructions = []
-                      previousConditionalName = None
-                      endIfName = None
-                      previousConditional = None
-                      
-                elif isinstance(tree[1].right.right.left, StatementTree):
-                  temp1, indexValue, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i].right.right.left, fullScope, 0, jumpNumber)
-                  if handlingIf:
-                    temp1.nextLine.addName(endIfName)
-                    if not elseAppeared:
-                      temp1.nextLine.addName(previousConditionalName)
-                      previousConditional.setNextLineFalse(temp1.nextLine)
-                    for j in endBranchJumpInstructions:
-                      j.setNextLine(temp1.nextLine)
-                    if whileConditional:
-                      previousLine = temp1.nextLine
-                      whileJump.setNextLine(beginWhileJump)
-                      whileJump = None
-                      beginWhileJump = None
-                    endBranchJumpInstructions = []
-                    previousConditionalName = None
-                    endIfName = None
-                    previousConditional = None
-                  previousLine.setLastLine(CodeLine("LDD", [indexValue, counterIdentifier], None))
-                    
-                elseAppeared = False
-                handlingIf = True
-                whileConditional = True
-                    
-                
-                #Generate comparison
-                temp1, compareTo, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), StatementTree([counterIdentifier, "IDENTIFIER"], tree[i].right.right.right, ["<", "COMPARATOR"]), fullScope, 0, jumpNumber)
-                
-                beginWhileName = "jSTARTFOR" + str(jumpNumber)
+                startLoopName = "jSTARTFOR" + str(jumpNumber)
                 jumpNumber += 1
-                print(temp1)
-                print(tree[i].right.right.right)
-                temp1.nextLine.addName(beginWhileName)
-                beginWhileJump = temp1.nextLine
+                previousLine.getLastLine().addName(startLoopName)
+                  
+                tempRight = convertIntoPartial(previousLine, StatementTree(tree[i].right.right.right, counterIdentifier, [">","COMPARATOR"]), fullScope, tempLeft[3], jumpNumber)
+                previousLine = tempRight[1]
+                result = tempRight[2]
+                jumpNumber = tempRight[4]
                 
-                previousConditionalName = "jPASTFOR" + str(jumpNumber)
-                jumpNumber += 1
-                previousLine.setLastLine(CodeLine("ANB INB", [0, compareTo[0]], None))
-                previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-                previousLine.setLastLine(previousConditional)
-                
-                i += 1
-                temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-                whileJump = CodeLine("JMP", [beginWhileName], None)
-                previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
-                previousLine.setLastLine(whileJump)
+                if len(result) == 1:
+                  if result[0][1] == "CONST":
+                    if result[0][0] == 0:
+                      i += 1
+                    else:
+                      i += 1
+                      temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                      previousLine = temp[1]
+                      jumpNumber = temp[2]
+                      previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                      previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  elif result[0][1] == "DIR":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousLine.setLastLine(CodeLine("ANB INB", [0, result[0][0]], None))
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                    
+                  elif result[0][1] == "IN":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
+                    previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                  elif result[0][1] == "FLAG0":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousConditional = ConditionalLine("JPF 20", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                  elif result[0][1] == "FLAG1":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousConditional = ConditionalLine("JPF 08", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                  elif result[0][1] == "FLAG2":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousConditional = ConditionalLine("JPF 02", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                  elif result[0][1] == "NFLAG2":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousConditional = ConditionalLine("JPF 03", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                else:
+                  raise Exception("Invalid condition for for in: " + tree[i].cleanPrint())
               
-              elif tree[i].right.operator[1] == "PARAMETERS":
-                pass
-                
-            elif isinstance(tree[i].right.right, list):
+            else:
               
               counterIdentifier = "COUNTER" + str(jumpNumber)
-              jumpNumber += 1
-              
               fullScope[counterIdentifier] = ["INT", 1, [], []]
+              jumpNumber += 1
+              elementIdentifier = tree[i].right.left
               
-              if fullScope[tree[i].right.right[0]][0] in ["ARRAY", "STRING"]:
-                temp1 = CodeLine("LDV", [0, counterIdentifier], None)
-                previousLine.setLastLine(temp1)
-                if handlingIf:
-                  temp1.addName(endIfName)
-                  if not elseAppeared:
-                    temp1.addName(previousConditionalName)
-                    previousConditional.setNextLineFalse(temp1)
-                  for j in endBranchJumpInstructions:
-                    j.setNextLine(temp1)
-                  if whileConditional:
-                    previousLine = temp1
-                    whileJump.setNextLine(beginWhileJump)
-                    whileJump = None
-                    beginWhileJump = None
-                  endBranchJumpInstructions = []
-                  previousConditionalName = None
-                  endIfName = None
-                  previousConditional = None
-                    
-              elseAppeared = False
-              handlingIf = True
-              whileConditional = True
+              tempLeft = convertIntoPartial(previousLine, tree[i].right.right, fullScope, 0, jumpNumber)
+              jumpNumber = tempLeft[4]
+              previousLine = tempLeft[1]
+              arrayOperand = tempLeft[2]
+              
+              previousLine.setLastLine(CodeLine("LDV", [0, counterIdentifier], None))
+              startLoopName = "jSTARTFOR" + str(jumpNumber)
+              jumpNumber += 1
+              previousLine.getLastLine().addName(startLoopName)
+              
+              temp = convertIntoPartial(previousLine, StatementTree(elementIdentifier, StatementTree([arrayOperand[0][0], "IDENTIFIER"], [counterIdentifier, "IDENTIFIER"], ["[]", "SUBSCRIPT"]), ["=", "ASSIGNER"]), fullScope, 0, jumpNumber, case=1)
+              previousLine = temp[1]
+              number = temp[3]
+              jumpNumber = temp[4]
+              
+              temp = convertIntoPartial(previousLine, StatementTree([len(arrayOperand), "NUMBER"], [counterIdentifier, "IDENTIFIER"], [">", "COMPARATOR"]), fullScope, 0, jumpNumber)
+              previousLine = temp[1]
+              result = temp[2]
+              number = temp[3]
+              jumpNumber = temp[4]
+              
+              if len(result) == 1:
+                if result[0][1] == "CONST":
+                  if result[0][0] == 0:
+                    i += 1
+                  else:
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                elif result[0][1] == "DIR":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, result[0][0]], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
                   
-              valueIdentifier = tree[i].right.left[0]
-              temp1, valueAddress, number, jumpNumber = convertIntoPartialSubscript(previousLine.getLastLine(), StatementTree(tree[i].right.right, [counterIdentifier, "IDENTIFIER"], ["[]", "SUBSCRIPT"]), fullScope, 0, jumpNumber)
-              previousLine.setLastLine(CodeLine("LDI", [valueAddress[0], valueIdentifier], None))
-              
-              beginWhileName = "jSTARTFOR" + str(jumpNumber)
-              jumpNumber += 1
-              #print(temp1)
-              #print(tree[i].right.right.right)
-              temp1.nextLine.addName(beginWhileName)
-              beginWhileJump = temp1.nextLine
-              
-              #Generate comparison
-              temp1, compareTo, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), StatementTree([counterIdentifier, "IDENTIFIER"], [fullScope[tree[i].right.right[0]][1], "NUMBER"], ["<", "COMPARATOR"]), fullScope, 0, jumpNumber)
-              
-              
-              previousConditionalName = "jPASTFOR" + str(jumpNumber)
-              jumpNumber += 1
-              previousLine.setLastLine(CodeLine("ANB INB", [0, compareTo[0]], None))
-              previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-              previousLine.setLastLine(previousConditional)
-              
-              i += 1
-              temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-              whileJump = CodeLine("JMP", [beginWhileName], None)
-              previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
-              previousLine.setLastLine(whileJump)
+                elif result[0][1] == "IN":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "FLAG0":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 20", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "FLAG1":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 08", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "FLAG2":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 02", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "NFLAG2":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 03", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+              else:
+                raise Exception("Invalid condition for for in: " + tree[i].cleanPrint())
           
           #WHILE
           elif tree[i].operator[0] == "while":
             
-            if isinstance(tree[i].right, StatementTree):
-              temp1, temp, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i].right, fullScope, 0, jumpNumber)
-              nextLine = temp1.nextLine
-              if handlingIf:
-                temp1.nextLine.addName(endIfName)
-                if not elseAppeared:
-                  temp1.nextLine.addName(previousConditionalName)
-                  previousConditional.setNextLineFalse(temp1.nextLine)
-                for j in endBranchJumpInstructions:
-                  j.setNextLine(temp1.nextLine)
-                if whileConditional:
-                  previousLine = temp1.nextLine
-                  whileJump.setNextLine(beginWhileJump)
-                  whileJump = None
-                  beginWhileJump = None
-                endBranchJumpInstructions = []
-                previousConditionalName = None
-                endIfName = None
-                previousConditional = None
-                
-              beginWhileName = "jSTARTWHILE" + str(jumpNumber)
-              jumpNumber += 1
-              nextLine.addName(beginWhileName)
-              beginWhileJump = nextLine
-              
-              handlingIf = True
-              whileConditional = True
-              elseAppeared = False
-              
-              previousConditionalName = "jPASTWHILE" + str(jumpNumber)
-              jumpNumber += 1
-              previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-              previousLine.setLastLine(CodeLine("ANB INB", [0, temp[0]], None))
-              previousLine.setLastLine(previousConditional)
-              i += 1
-              temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-              whileJump = CodeLine("JMP", [beginWhileName], None)
-              previousLine.setLastLine(whileJump)
-              
-            elif isinstance(tree[i].right, list):
-              if tree[i].right[1] == "BOOLEAN":
-                temp1 = CodeLine("ANV INA", [tree[i].right[0], 0], None)
-                previousLine.setLastLine(temp1)
-                nextLine = temp1
-                if handlingIf:
-                  temp1.addName(endIfName)
-                  if not elseAppeared:
-                    temp1.addName(previousConditionalName)
-                    previousConditional.setNextLineFalse(temp1)
-                  for j in endBranchJumpInstructions:
-                    j.setNextLine(temp1)
-                  if whileConditional:
-                    previousLine = temp1
-                    whileJump.setNextLine(beginWhileJump)
-                    whileJump = None
-                    beginWhileJump = None
-                  endBranchJumpInstructions = []
-                  previousConditionalName = None
-                  endIfName = None
-                  previousConditional = None
-                
-                beginWhileName = "jSTARTWHILE" + str(jumpNumber)
-                jumpNumber += 1
-                nextLine.addName(beginWhileName)
-                beginWhileJump = nextLine
-                
-                handlingIf = True
-                whileConditional = True
-                elseAppeared = False
-                
-                previousConditionalName = "jPASTWHILE" + str(jumpNumber)
-                jumpNumber += 1
-                previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-                previousLine.setLastLine(previousConditional)
-                i += 1
-                temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-                whileJump = CodeLine("JMP", [beginWhileName], None)
-                previousLine.setLastLine(whileJump)
-                
-              elif tree[i].right[1] == "IDENTIFIER":
-                temp1 = CodeLine("ANB INB", [tree[i].right[0]], None)
-                previousLine.setLastLine(temp1)
-                nextLine = temp1
-                if handlingIf:
-                  temp1.addName(endIfName)
-                  if not elseAppeared:
-                    temp1.addName(previousConditionalName)
-                    previousConditional.setNextLineFalse(temp1)
-                  for j in endBranchJumpInstructions:
-                    j.setNextLine(temp1)
-                  if whileConditional:
-                    previousLine = temp1
-                    whileJump.setNextLine(beginWhileJump)
-                    whileJump = None
-                    beginWhileJump = None
-                  endBranchJumpInstructions = []
-                  previousConditionalName = None
-                  endIfName = None
-                  previousConditional = None
-                
-                beginWhileName = "jSTARTWHILE" + str(jumpNumber)
-                jumpNumber += 1
-                nextLine.addName(beginWhileName)
-                beginWhileJump = nextLine
-                
-                handlingIf = True
-                whileConditional = True
-                elseAppeared = False
-                
-                previousConditionalName = "jPASTWHILE" + str(jumpNumber)
-                jumpNumber += 1
-                previousConditional = ConditionalLine("JPF EQL", [previousConditionalName], None, None)
-                previousLine.setLastLine(previousConditional)
-                i += 1
-                temp, previousLine, jumpNumber = convertCodeIntoPartial(tree[i], previousConditional, fullScope, number = jumpNumber)
-                whileJump = CodeLine("JMP", [beginWhileName], None)
-                previousLine.setLastLine(whileJump)
+            handlingIfFunc()
+            startLoopName = "jSTARTWHILE" + str(jumpNumber)
+            jumpNumber += 1
+            previousLine.getLastLine().addName(startLoopName)
+            
+            tempLeft = convertIntoPartial(previousLine, tree[i].right, fullScope, 0, jumpNumber)
+            jumpNumber = tempLeft[4]
+            previousLine = tempLeft[1]
+            result = tempLeft[2]
+            if debug:
+              print("Result:", result)
+              pass
+            
+            if len(result) == 1:
+              if len(result) == 1:
+                if result[0][1] == "CONST":
+                  if result[0][0] == 0:
+                    i += 1
+                  else:
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                elif result[0][1] == "DIR":
+                  pastJumpName = "jPASTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, result[0][0]], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                  
+                elif result[0][1] == "IN":
+                  pastJumpName = "jPASTTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "FLAG0":
+                  pastJumpName = "jPASTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 20", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "FLAG1":
+                  pastJumpName = "jPASTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 08", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "FLAG2":
+                  pastJumpName = "jPASTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 02", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "NFLAG2":
+                  pastJumpName = "jPASTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = ConditionalLine("JPF 03", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
             
           #PUSH POP
           elif tree[i].operator[0] in ["pop", "push"]:
-            temp1, temp2, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i], fullScope, 0, jumpNumber)
-            if handlingIf:
-              temp1.nextLine.addName(endIfName)
-              if not elseAppeared:
-                temp1.nextLine.addName(previousConditionalName)
-                previousConditional.setNextLineFalse(temp1.nextLine)
-              for j in endBranchJumpInstructions:
-                j.setNextLine(temp1.nextLine)
-              if whileConditional:
-                previousLine = temp1.nextLine
-                whileJump.setNextLine(beginWhileJump)
-                whileJump = None
-                beginWhileJump = None
-              endBranchJumpInstructions = []
-              previousConditionalName = None
-              endIfName = None
-              previousConditional = None
-            handlingIf = False
-            elseAppeared = False
-            whileConditional = False
+            handlingIfFunc()
+            temp1, previousLine, temp2, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i], fullScope, 0, jumpNumber)
             
           #DEF
           elif tree[i].operator[0] == "def":
             if tree[i].right.operator[1] == "PARAMETERS":
               functionBlock.append([tree[i].right.left, tree[i+1]])
               i += 1
+            else:
+              raise Exception("Invalid function declaration in: " + tree[i].cleanPrint())
               
           elif tree[i].operator[0] == "return":
-            results = []
-            if isinstance(tree[i].right, list):
-              if tree[i].right[1] == "IDENTIFIER":
-                if fullScope[tree[i].right[0]][0] in ["CHAR", "INT", "BOOLEAN"]:
-                  if fullScope[functionHeader][0] in ["CHAR", "INT", "BOOLEAN"]:
-                    temp1 = previousLine.getLastLine()
-                    previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
-                    previousLine.setLastLine(CodeLine("PSD", [tree[i].right[0]], None))
-                    previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
-                    if handlingIf:
-                      temp1.nextLine.addName(endIfName)
-                      if not elseAppeared:
-                        temp1.nextLine.addName(previousConditionalName)
-                        previousConditional.setNextLineFalse(temp1.nextLine)
-                      for j in endBranchJumpInstructions:
-                        j.setNextLine(temp1.nextLine)
-                      if whileConditional:
-                        previousLine = temp1.nextLine
-                        whileJump.setNextLine(beginWhileJump)
-                        whileJump = None
-                        beginWhileJump = None
-                      endBranchJumpInstructions = []
-                      previousConditionalName = None
-                      endIfName = None
-                      previousConditional = None
-                    handlingIf = False
-                    elseAppeared = False
-                    whileConditional = False
-                      
-                elif fullScope[tree[i].right[0]][0] in ["ARRAY", "STRING"]:
-                  if fullScope[functionHeader][1] == fullScope[tree[i].right[0]][1]:
-                    temp1 = previousLine.getLastLine()
-                    previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
-                    for j in range(fullScope[tree[i].right[0]][1]):
-                      previousLine.setLastLine(CodeLine("PSD", [tree[i].right[0] + "+" + str(fullScope[tree[i].right[0]][1] - j - 1)], None))
-                    previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
-                    if handlingIf:
-                      temp1.nextLine.addName(endIfName)
-                      if not elseAppeared:
-                        temp1.nextLine.addName(previousConditionalName)
-                        previousConditional.setNextLineFalse(temp1.nextLine)
-                      for j in endBranchJumpInstructions:
-                        j.setNextLine(temp1.nextLine)
-                      if whileConditional:
-                        previousLine = temp1.nextLine
-                        whileJump.setNextLine(beginWhileJump)
-                        whileJump = None
-                        beginWhileJump = None
-                      endBranchJumpInstructions = []
-                      previousConditionalName = None
-                      endIfName = None
-                      previousConditional = None
-                    handlingIf = False
-                    elseAppeared = False
-                    whileConditional = False
-                  
-              elif tree[i].right[1] == "STRING":
-                if len(tree[i].right[0][1:-1]) == fullScope[functionHeader][1]:
-                  temp1 = previousLine.getLastLine()
-                  previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
-                  for j in tree[i].right[0][1:-1]:
-                    previousLine.setLastLine(CodeLine("PSV", [convertCharIntoDecimal("'" + j)], None))
-                  previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
-                  if handlingIf:
-                    temp1.nextLine.addName(endIfName)
-                    if not elseAppeared:
-                      temp1.nextLine.addName(previousConditionalName)
-                      previousConditional.setNextLineFalse(temp1.nextLine)
-                    for j in endBranchJumpInstructions:
-                      j.setNextLine(temp1.nextLine)
-                    if whileConditional:
-                      previousLine = temp1.nextLine
-                      whileJump.setNextLine(beginWhileJump)
-                      whileJump = None
-                      beginWhileJump = None
-                    endBranchJumpInstructions = []
-                    previousConditionalName = None
-                    endIfName = None
-                    previousConditional = None
-                  handlingIf = False
-                  elseAppeared = False
-                  whileConditional = False
-                  
-              elif tree[i].right[1] in ["CHAR", "INT", "BOOLEAN"]:
-                previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
-                previousLine.setLastLine(CodeLine("PSV", [tree[i].right[0]], None))
-                previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
-                temp1 = previousLine.getLastLine()
-                if handlingIf:
-                  temp1.nextLine.addName(endIfName)
-                  if not elseAppeared:
-                    temp1.nextLine.addName(previousConditionalName)
-                    previousConditional.setNextLineFalse(temp1.nextLine)
-                  for j in endBranchJumpInstructions:
-                    j.setNextLine(temp1.nextLine)
-                  if whileConditional:
-                    previousLine = temp1.nextLine
-                    whileJump.setNextLine(beginWhileJump)
-                    whileJump = None
-                    beginWhileJump = None
-                  endBranchJumpInstructions = []
-                  previousConditionalName = None
-                  endIfName = None
-                  previousConditional = None
-                handlingIf = False
-                elseAppeared = False
-                whileConditional = False
-                  
-            elif isinstance(tree[i].right, StatementTree):
-              temp1, results, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i].right, fullScope, 0, jumpNumber)
-              if handlingIf:
-                temp1.nextLine.addName(endIfName)
-                if not elseAppeared:
-                  temp1.nextLine.addName(previousConditionalName)
-                  previousConditional.setNextLineFalse(temp1.nextLine)
-                for j in endBranchJumpInstructions:
-                  j.setNextLine(temp1.nextLine)
-                if whileConditional:
-                  previousLine = temp1.nextLine
-                  whileJump.setNextLine(beginWhileJump)
-                  whileJump = None
-                  beginWhileJump = None
-                endBranchJumpInstructions = []
-                previousConditionalName = None
-                endIfName = None
-                previousConditional = None
-              handlingIf = False
-              elseAppeared = False
-              whileConditional = False
-              previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
-              if len(results) == fullScope[functionHeader][1]:
-                for j in range(len(results)):
-                  previousLine.setLastLine(CodeLine("PSD", [results[len(results) - j - 1]], None))
-              else:
-                print(len(results), fullScope[functionHeader][1])
-                raise Exception ("Mismatched Lengths")
-              previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
-            
+            handlingIfFunc()
+            temp = convertIntoPartial(previousLine.getLastLine(), StatementTree([], tree[i].right, ["push", "KEYWORD"]), fullScope, 0, jumpNumber, case = 2)
+            previousLine = temp[1]
+            jumpNumber = temp[4]
         else:
-          temp1, temp2, number, jumpNumber = convertIntoPartial(previousLine.getLastLine(), tree[i], fullScope, 0, jumpNumber)
-          if handlingIf:
-            temp1.nextLine.addName(endIfName)
-            if not elseAppeared:
-              temp1.nextLine.addName(previousConditionalName)
-              previousConditional.setNextLineFalse(temp1.nextLine)
-            for j in endBranchJumpInstructions:
-              j.setNextLine(temp1.nextLine)
-            if whileConditional:
-              previousLine = temp1.nextLine
-              whileJump.setNextLine(beginWhileJump)
-              whileJump = None
-              beginWhileJump = None
-            endBranchJumpInstructions = []
-            previousConditionalName = None
-            endIfName = None
-            previousConditional = None
-          handlingIf = False
-          elseAppeared = False
-          whileConditional = False
+          handlingIfFunc()
+          temp = convertIntoPartial(previousLine.getLastLine(), tree[i], fullScope, 0, jumpNumber)
+          previousLine = temp[1]
+          jumpNumber = temp[4]
       i += 1
-    for i in functionBlock:
-      temp1, previousLine, jumpNumber = convertCodeIntoPartial(i[1], previousLine.getLastLine(), fullScope, number = jumpNumber, functionHeader = i[0][0])
-      temp1.nextLine.addName(i[0][0])
-      temp1.setNextLine(None)
-      
-  
-  if handlingIf:
-    temp1 = CodeLine("PWS", [], None)
-    previousLine.setLastLine(temp1)
-    temp1.addName(endIfName)
-    if not elseAppeared:
-      temp1.addName(previousConditionalName)
-      previousConditional.setNextLineFalse(temp1)
-    for j in endBranchJumpInstructions:
-      j.setNextLine(temp1)
-    if whileConditional:
-      previousLine = temp1
-      whileJump.setNextLine(beginWhileJump)
-      whileJump = None
-      beginWhileJump = None
-    endBranchJumpInstructions = []
-    previousConditionalName = None
-    endIfName = None
-    previousConditional = None
-  handlingIf = False
-  elseAppeared = False
-  whileConditional = False
     
-  if functionHeader != None:
-    if fullScope[functionHeader][0] == "":
-      temp1 = CodeLine("PPD", ["RETURNA"], None)
-      previousLine.setLastLine(temp1)
-      if handlingIf:
-        temp1.addName(endIfName)
-        temp1.addName(previousConditionalName)
-        if not elseAppeared:
-          previousConditional.setNextLineFalse(temp1.nextLine)
-        for j in endBranchJumpInstructions:
-          j.setNextLine(temp1)
-        if whileConditional:
-          previousLine = temp1
-          whileJump.setNextLine(beginWhileJump)
-          whileJump = None
-          beginWhileJump = None
-        endBranchJumpInstructions = []
-        previousConditionalName = None
-        endIfName = None
-        previousConditional = None
-      handlingIf = False
-      elseAppeared = False
-      whileConditional = False
-      previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
+    handlingIfFunc()
+    if functionHeader != None:
+      pass
+    for i in functionBlock:
+      previousLine.getLastLine().addName(i[0][0])
+      temp = convertCodeIntoPartial(i[1], previousLine, fullScope, number = jumpNumber, functionHeader = i[0][0])
+      previousLine = temp[1]
+      jumpNumber = temp[2]
       
   return startPreviousLine, previousLine.getLastLine(), jumpNumber
 
-def convertIntoPartialSubscript(previousLine, tree, fullScope, number, jumpNumber):
-  if isinstance(tree, StatementTree):
-    if tree.operator[1] == "SUBSCRIPT":
-      rightType = "EXPRESSION"
-      rightOperand = ""
-      leftOperand = ""
-      resultOperand = "TEMP" + str(number)
-      number += 1
-      
-      if isinstance(tree.right, list):
-        if tree.right[1] in ["CHAR", "NUMBER"]:
-          rightType = "CONST"
-          rightOperand = tree.right[0]
-        elif tree.right[1] in ["IDENTIFIER"]:
-          rightType = "VAR"
-          rightOperand = tree.right[0]
-      else:
-        temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-        rightOperand = temp[1][0]
-        number = temp[2]
-      
-      if not isinstance(tree.left, list):
-        raise Exception("Invalid subscript")
-      elif not tree.left[1] == "IDENTIFIER":
-        raise Exception("Invalid subscript")
-      elif not fullScope[tree.left[0]][0] in ["ARRAY", "STRING"]:
-        raise Exception("Invalid subscript")
-      else:
-        leftOperand = tree.left[0]
-      
-      if rightType == "CONST":
-        previousLine.setLastLine(CodeLine("ALV ADD", [leftOperand, rightOperand, resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
-      else:
-        previousLine.setLastLine(CodeLine("ALB ADD", [leftOperand, rightOperand, resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
+def convertFlagIntoPartial(previousLine, flagBit, number):
+  if flagBit == "FLAG0":
+    resultOperand = "TEMP" + str(number)
+    number += 1
+    previousLine.setLastLine(CodeLine("ALB AND", [1, "FLG", resultOperand], None))
+    return previousLine, resultOperand, number
+  elif flagBit == "FLAG1":
+    resultOperand = "TEMP" + str(number)
+    number += 1
+    previousLine.setLastLine(CodeLine("ALB AND", [2, "FLG", resultOperand], None))
+    previousLine.setLastLine(CodeLine("ALB SRB", [0, resultOperand, resultOperand], None))
+    return previousLine, resultOperand, number
+  elif flagBit == "FLAG2":
+    resultOperand = "TEMP" + str(number)
+    number += 1
+    previousLine.setLastLine(CodeLine("ALB RSB", [2, "FLG", resultOperand], None))
+    return previousLine, resultOperand, number
+  elif flagBit == "NFLAG0":
+    resultOperand = "TEMP" + str(number)
+    number += 1
+    previousLine.setLastLine(CodeLine("ALB 091", [1, "FLG", resultOperand], None))
+    return previousLine, resultOperand, number
+  elif flagBit == "NFLAG1":
+    resultOperand = "TEMP" + str(number)
+    number += 1
+    previousLine.setLastLine(CodeLine("ALB 091", [2, "FLG", resultOperand], None))
+    previousLine.setLastLine(CodeLine("ALB SRB", [0, resultOperand, resultOperand], None))
+  elif flagBit == "NFLAG2":
+    resultOperand = "TEMP" + str(number)
+    number += 1
+    previousLine.setLastLine(CodeLine("ALB NGB", [0, "FLG", resultOperand], None))
+    previousLine.setLastLine(CodeLine("ALB RSB", [2, resultOperand, resultOperand], None))
+    return previousLine, resultOperand, number
 
-#returns previousLine, [resultLocations], number
-def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber):
-  print(tree)
+#returns previousLine, lastLine, [[resultLoc, resultType]], number, jumpNumber (resultType:, CONST = constant, DIR = direct address, IN = indirect address, POP = on Stack, FLAG0 = Flag bit 0, FLAG1 = Flag bit 1, FLAG2 = Flag Bit 2, NFLAG2 = NOT Flag Bit 2, ACC = accumukator, ACC2 = accumulator2)
+def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case = 0):
+  if debug:
+    #print(tree)
+    pass
   if isinstance(tree, StatementTree):
     
     #OPERATOR
     if tree.operator[1] == "OPERATOR":
-      assemblyOperator = ""
-      leftType = "EXPRESSION"
-      rightType = "EXPRESSION"
-      leftOperand = ""
-      rightOperand = ""
-      resultOperand = ""
-      swapped = False
+      leftOperand = []
+      rightOperand = []
       
-      if isinstance(tree.left, list):
-        if tree.left[1] in ["CHAR", "NUMBER"]:
-          leftType = "CONST"
-        elif tree.left[1] in ["IDENTIFIER"]:
-          leftType = "VAR"
-      if isinstance(tree.right, list):
-        if tree.right[1] in ["CHAR", "NUMBER"]:
-          rightType = "CONST"
-        elif tree.right[1] in ["IDENTIFIER"]:
-          rightType = "VAR"
-          
-      if leftType in ["VAR", "EXPRESSION"] and rightType in ["VAR", "EXPRESSION"]:
-        assemblyOperator = "ALD"
-        if leftType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
-          leftOperand = temp[1][0]
-          number = temp[2]
-        else:
-          leftOperand = tree.left[0]
-        if rightType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType == "CONST" and rightType in ["VAR", "EXPRESSION"]:
-        assemblyOperator = "ALB"
-        leftOperand = tree.left[0]
-        if rightType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType in ["VAR", "EXPRESSION"] and rightType == "CONST":
-        assemblyOperator = "ALB"
-        leftOperand = tree.right[0]
-        if leftType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.left[0]
-        swapped = True
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType == "CONST" and rightType == "CONST":
-        assemblyOperator = "ALV"
-        leftOperand = tree.left[0]
-        rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
+      tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
+      leftOperand = tempLeft[2]
+      number = tempLeft[3]
+      jumpNumber = tempLeft[4]
       
-      if tree.operator[0] == "+":
-        assemblyOperator += " ADD"
-      elif tree.operator[0] == "-":
-        if swapped:
-          assemblyOperator += " SBB"
-        else:
-          assemblyOperator += " SBA"
-      elif tree.operator[0] == "*":
-        assemblyOperator += " MLT"
-      elif tree.operator[0] == "/":
-        if swapped:
-          assemblyOperator += " DVB"
-        else:
-          assemblyOperator += " DVA"
-      elif tree.operator[0] == "%":
-        if swapped:
-          assemblyOperator += " DVB"
-        else:
-          assemblyOperator += " DVA"
-        assemblyOperator = assemblyOperator[0] + "N" + assemblyOperator[2:len(assemblyOperator)]
-        previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand, rightOperand], None))
-        previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
-      elif tree.operator[0] == ">>":
-        if swapped:
-          assemblyOperator += " RSB"
-        else:
-          assemblyOperator += " RSA"
-      elif tree.operator[0] == "<<":
-        if swapped:
-          assemblyOperator += " LSB"
-        else:
-          assemblyOperator += " LSA"
-      elif tree.operator[0] == "&":
-        assemblyOperator += " AND"
-      elif tree.operator[0] == "|":
-        assemblyOperator += " ORR"
-      elif tree.operator[0] == "^":
-        assemblyOperator += " XOR"
+      for i in range(len(leftOperand)):
+        if leftOperand[i][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          leftOperand[i][0] = replaceOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, leftOperand[i][1], number)
+          leftOperand[i][0] = temp[1]
+          number = temp[2]
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], resultOperand], None))
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
+        
+      tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+      rightOperand = tempRight[2]
+      number = tempRight[3]
+      jumpNumber = tempRight[4]
+      
+      for i in range(len(rightOperand)):
+        if rightOperand[i][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          rightOperand[i][0] = replaceOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+          rightOperand[i][0] = temp[1]
+          number = temp[2]
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        
+      result = []
+      if len(leftOperand) == len(rightOperand):
+        for i in range(len(leftOperand)):
+          if leftOperand[i][1] == "CONST":
+            if rightOperand[i][1] == "CONST":
+              if tree.operator[0] == "+":
+                result.append([leftOperand[i][0] + rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "-":
+                result.append([leftOperand[i][0] - rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "*":
+                result.append([leftOperand[i][0] * rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "/":
+                result.append([leftOperand[i][0] // rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "%":
+                result.append([leftOperand[i][0] % rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == ">>":
+                result.append([leftOperand[i][0] >> rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "<<":
+                result.append([leftOperand[i][0] << rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "&":
+                result.append([leftOperand[i][0] & rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "|":
+                result.append([leftOperand[i][0] | rightOperand[i][0], "CONST"])
+              elif tree.operator[0] == "^":
+                result.append([leftOperand[i][0] ^ rightOperand[i][0], "CONST"])
+              else:
+                raise Exception("Missing case in: " + tree.cleanPrint())
+            elif rightOperand[i][1] == "DIR":
+              if tree.operator[0] != "%":
+                assemblyOperator = "ALB"
+                if tree.operator[0] == "+":
+                  assemblyOperator += " ADD"
+                elif tree.operator[0] == "-":
+                  assemblyOperator += " SBA"
+                elif tree.operator[0] == "*":
+                  assemblyOperator += " MLT"
+                elif tree.operator[0] == "/":
+                  assemblyOperator += " DVA"
+                elif tree.operator[0] == ">>":
+                  assemblyOperator += " RSA"
+                elif tree.operator[0] == "<<":
+                  assemblyOperator += " LSA"
+                elif tree.operator[0] == "&":
+                  assemblyOperator += " AND"
+                elif tree.operator[0] == "|":
+                  assemblyOperator += " ORR"
+                elif tree.operator[0] == "^":
+                  assemblyOperator += " XOR"
+                else:
+                  raise Exception("Missing case in: " + tree.cleanPrint())
+                resultOperand = "TEMP" + str(number)
+                number += 1
+                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
+                result.append([resultOperand, "DIR"])
+              else:
+                assemblyOperator = "ANB DVA"
+                resultOperand = "TEMP" + str(number)
+                number += 1
+                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
+                previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
+                result.append([resultOperand, "DIR"])
+            else:
+              raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+            pass
+          elif leftOperand[i][1] == "DIR":
+            if rightOperand[i][1] == "CONST":
+              if tree.operator[0] != "%":
+                assemblyOperator = "ALB"
+                if tree.operator[0] == "+":
+                  assemblyOperator += " ADD"
+                elif tree.operator[0] == "-":
+                  assemblyOperator += " SBB"
+                elif tree.operator[0] == "*":
+                  assemblyOperator += " MLT"
+                elif tree.operator[0] == "/":
+                  assemblyOperator += " DVB"
+                elif tree.operator[0] == ">>":
+                  assemblyOperator += " RSB"
+                elif tree.operator[0] == "<<":
+                  assemblyOperator += " LSB"
+                elif tree.operator[0] == "&":
+                  assemblyOperator += " AND"
+                elif tree.operator[0] == "|":
+                  assemblyOperator += " ORR"
+                elif tree.operator[0] == "^":
+                  assemblyOperator += " XOR"
+                else:
+                  raise Exception("Missing case in: " + tree.cleanPrint())
+                resultOperand = "TEMP" + str(number)
+                number += 1
+                previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0], resultOperand], None))
+                result.append([resultOperand, "DIR"])
+              else:
+                assemblyOperator = "ANB DVB"
+                resultOperand = "TEMP" + str(number)
+                number += 1
+                previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0]], None))
+                previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
+                result.append([resultOperand, "DIR"])
+            elif rightOperand[i][1] == "DIR":
+              if tree.operator[0] != "%":
+                assemblyOperator = "ALD"
+                if tree.operator[0] == "+":
+                  assemblyOperator += " ADD"
+                elif tree.operator[0] == "-":
+                  assemblyOperator += " SBA"
+                elif tree.operator[0] == "*":
+                  assemblyOperator += " MLT"
+                elif tree.operator[0] == "/":
+                  assemblyOperator += " DVA"
+                elif tree.operator[0] == "%":
+                  assemblyOperator += " DVA"
+                elif tree.operator[0] == ">>":
+                  assemblyOperator += " RSA"
+                elif tree.operator[0] == "<<":
+                  assemblyOperator += " LSA"
+                elif tree.operator[0] == "&":
+                  assemblyOperator += " AND"
+                elif tree.operator[0] == "|":
+                  assemblyOperator += " ORR"
+                elif tree.operator[0] == "^":
+                  assemblyOperator += " XOR"
+                else:
+                  raise Exception("Missing case in: " + tree.cleanPrint())
+                resultOperand = "TEMP" + str(number)
+                number += 1
+                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
+                result.append([resultOperand, "DIR"])
+              else:
+                assemblyOperator = "AND DVA"
+                resultOperand = "TEMP" + str(number)
+                number += 1
+                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
+                previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
+                result.append([resultOperand, "DIR"])
+            else:
+              raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+          else:
+            raise Exception("Invalid type " + leftOperand[i][1] + " in: " + tree.cleanPrint())
       else:
-        raise Exception("Missing case in: " + tree.cleanPrint())
-      previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand, rightOperand, resultOperand], None))
-      return previousLine, [resultOperand], number, jumpNumber
+        raise Exception("Mismatched operand lengths in: " + tree.cleanPrint())
+        
+      return previousLine, previousLine.getLastLine(), result, number, jumpNumber
     
     #BOOLEAN_OPERATOR
     elif tree.operator[1] == "BOOLEAN_OPERATOR":
-      assemblyOperator = ""
-      leftType = "EXPRESSION"
-      rightType = "EXPRESSION"
-      leftOperand = ""
-      rightOperand = ""
-      resultOperand = ""
-      swapped = False
+      leftOperand = []
+      rightOperand = []
       
-      if isinstance(tree.left, list):
-        if tree.left[1] in ["BOOLEAN"]:
-          leftType = "CONST"
-        elif tree.left[1] in ["IDENTIFIER"]:
-          leftType = "VAR"
-      if isinstance(tree.right, list):
-        if tree.right[1] in ["BOOLEAN"]:
-          rightType = "CONST"
-        elif tree.right[1] in ["IDENTIFIER"]:
-          rightType = "VAR"
-          
-      if leftType in ["VAR", "EXPRESSION"] and rightType in ["VAR", "EXPRESSION"]:
-        assemblyOperator = "ALD"
-        if leftType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
-          leftOperand = temp[1][0]
-          number = temp[2]
-        else:
-          leftOperand = tree.left[0]
-        if rightType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType == "CONST" and rightType in ["VAR", "EXPRESSION"]:
-        assemblyOperator = "ALB"
-        leftOperand = tree.left[0]
-        if rightType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType in ["VAR", "EXPRESSION"] and rightType == "CONST":
-        assemblyOperator = "ALB"
-        leftOperand = tree.right[0]
-        if leftType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.left[0]
-        swapped = True
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType == "CONST" and rightType == "CONST":
-        assemblyOperator = "ALV"
-        leftOperand = tree.left[0]
-        rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
+      tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
+      leftOperand = tempLeft[2]
+      number = tempLeft[3]
+      jumpNumber = tempLeft[4]
       
-      if tree.operator[0] == "and":
-        assemblyOperator += " AND"
-        previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand, rightOperand, resultOperand], None))
-      elif tree.operator[0] == "or":
-        assemblyOperator += " ORR"
-        previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand, rightOperand, resultOperand], None))
-      elif tree.operator[0] == "xor":
-        assemblyOperator += " XOR"
-        previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand, rightOperand, resultOperand], None))
-      elif tree.operator[0] == "nand":
-        previousLine.setLastLine(CodeLine(assemblyOperator + " NND", [leftOperand, rightOperand, resultOperand], None))
-        previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
-      elif tree.operator[0] == "or":
-        previousLine.setLastLine(CodeLine(assemblyOperator + " NOR", [leftOperand, rightOperand, resultOperand], None))
-        previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
-      elif tree.operator[0] == "xor":
-        previousLine.setLastLine(CodeLine(assemblyOperator + " XNR", [leftOperand, rightOperand, resultOperand], None))
-        previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
+      for i in range(len(leftOperand)):
+        if leftOperand[i][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          leftOperand[i][0] = replaceOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, leftOperand[i][1], number)
+          leftOperand[i][0] = temp[1]
+          number = temp[2]
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], resultOperand], None))
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
+        
+      tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+      rightOperand = tempRight[2]
+      number = tempRight[3]
+      jumpNumber = tempRight[4]
+      
+      for i in range(len(rightOperand)):
+        if rightOperand[i][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          rightOperand[i][0] = replaceOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+          rightOperand[i][0] = temp[1]
+          number = temp[2]
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+      
+      result = []
+      if len(leftOperand) == len(rightOperand):
+        for i in range(len(leftOperand)):
+          if leftOperand[i][1] == "CONST":
+            if rightOperand[i][1] == "CONST":
+              if tree.operator[0] == "and":
+                result.append([(leftOperand[i][0] & rightOperand[i][0]) & 1, "CONST"])
+              elif tree.operator[0] == "or":
+                result.append([(leftOperand[i][0] | rightOperand[i][0]) & 1, "CONST"])
+              elif tree.operator[0] == "xor":
+                result.append([(leftOperand[i][0] ^ rightOperand[i][0]) & 1, "CONST"])
+              elif tree.operator[0] == "nand":
+                result.append([((leftOperand[i][0] & rightOperand[i][0]) ^ 0xffff) & 1, "CONST"])
+              elif tree.operator[0] == "nor":
+                result.append([((leftOperand[i][0] | rightOperand[i][0]) ^ 0xffff) & 1, "CONST"])
+              elif tree.operator[0] == "xnor":
+                result.append([((leftOperand[i][0] ^ rightOperand[i][0]) ^ 0xffff) & 1, "CONST"])
+              else:
+                raise Exception("Missing case in: " + tree.cleanPrint())
+            elif rightOperand[i][1] == "DIR":
+              assemblyOperator = "ALB"
+              if tree.operator[0] == "and":
+                assemblyOperator += " AND"
+              elif tree.operator[0] == "or":
+                assemblyOperator += " ORR"
+              elif tree.operator[0] == "xor":
+                assemblyOperator += " XOR"
+              elif tree.operator[0] == "nand":
+                assemblyOperator += " NND"
+              elif tree.operator[0] == "nor":
+                assemblyOperator += " NOR"
+              elif tree.operator[0] == "xnor":
+                assemblyOperator += " XNR"
+              else:
+                raise Exception("Missing case in: " + tree.cleanPrint())
+              resultOperand = "TEMP" + str(number)
+              number += 1
+              previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
+              previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
+              result.append([resultOperand, "DIR"])
+            else:
+              raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+            pass
+          elif leftOperand[i][1] == "DIR":
+            if rightOperand[i][1] == "CONST":
+              assemblyOperator = "ALB"
+              if tree.operator[0] == "and":
+                assemblyOperator += " AND"
+              elif tree.operator[0] == "or":
+                assemblyOperator += " ORR"
+              elif tree.operator[0] == "xor":
+                assemblyOperator += " XOR"
+              elif tree.operator[0] == "nand":
+                assemblyOperator += " NND"
+              elif tree.operator[0] == "nor":
+                assemblyOperator += " NOR"
+              elif tree.operator[0] == "xnor":
+                assemblyOperator += " XNR"
+              else:
+                raise Exception("Missing case in: " + tree.cleanPrint())
+              resultOperand = "TEMP" + str(number)
+              number += 1
+              previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0], resultOperand], None))
+              previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
+              result.append([resultOperand, "DIR"])
+            elif rightOperand[i][1] == "DIR":
+              assemblyOperator = "ALD"
+              if tree.operator[0] == "and":
+                assemblyOperator += " AND"
+              elif tree.operator[0] == "or":
+                assemblyOperator += " ORR"
+              elif tree.operator[0] == "xor":
+                assemblyOperator += " XOR"
+              elif tree.operator[0] == "nand":
+                assemblyOperator += " NND"
+              elif tree.operator[0] == "nor":
+                assemblyOperator += " NOR"
+              elif tree.operator[0] == "xnor":
+                assemblyOperator += " XNR"
+              else:
+                raise Exception("Missing case in: " + tree.cleanPrint())
+              resultOperand = "TEMP" + str(number)
+              number += 1
+              previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
+              previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
+              result.append([resultOperand, "DIR"])
+            else:
+              raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+          else:
+            raise Exception("Invalid type " + leftOperand[i][1] + " in: " + tree.cleanPrint())
       else:
-        raise Exception("Missing case in: " + tree.cleanPrint())
-      return previousLine, [resultOperand], number, jumpNumber
+        raise Exception("Mismatched operand lengths in: " + tree.cleanPrint())
+        
+      return previousLine, previousLine.getLastLine(), result, number, jumpNumber
     
     #NEGATOR
     elif tree.operator[1] == "NEGATOR":
       if tree.operator[0] == "not":
-        assemblyOperator = "ALB"
-        rightType = "EXPRESSION"
-        rightOperand = ""
-        resultOperand = ""
+        rightOperand = []
         
-        if isinstance(tree.right, list):
-          if tree.right[1] in ["BOOLEAN"]:
-            rightType = "CONST"
-          elif tree.right[1] in ["IDENTIFIER"]:
-            rightType = "VAR"
-            
-        if rightType in ["VAR", "EXPRESSION"]:
-          if rightType == "EXPRESSION":
-            temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-            rightOperand = temp[1][0]
+        tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+        rightOperand = tempRight[2]
+        number = tempRight[3]
+        jumpNumber = tempRight[4]
+        
+        result = []
+        for i in range(len(rightOperand)):
+          if rightOperand[i][1] == "POP":
+            replaceOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+            rightOperand[i][0] = replaceOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG1"]:
+            temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+            rightOperand[i][0] = temp[1]
             number = temp[2]
+          elif rightOperand[i][1] == "IN":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          rightOperand[i][1] = "DIR"
+          if rightOperand[i][1] == "CONST":
+            result.append([(rightOperand[i][0] ^ 0xffff) & 1, "CONST"])
+          elif rightOperand[i][1] == "DIR":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("ALB NTB", [0, rightOperand[i][0], resultOperand], None))
+            previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
+            result.append([resultOperand, "DIR"])
           else:
-            rightOperand = tree.right[0]
-          resultOperand = "TEMP" + str(number)
-          number += 1
+            raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+        
+        return previousLine, previousLine.getLastLine(), result, number, jumpNumber
           
-        elif rightType == "CONST":
-          assemblyOperator = "ALV"
-          rightOperand = tree.right[0]
-          resultOperand = "TEMP" + str(number)
-          number += 1
-          
-        assemblyOperator += " NTB"
-        previousLine.setLastLine(CodeLine(assemblyOperator, [0, rightOperand, resultOperand], None))
-        previousLine.setLastLine(CodeLine("ALB AND", [0, resultOperand, resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
       else:
-        assemblyOperator = "ALB"
-        rightType = "EXPRESSION"
-        rightOperand = ""
-        resultOperand = ""
+        rightOperand = []
         
-        if isinstance(tree.right, list):
-          if tree.right[1] in ["CHAR", "NUMBER"]:
-            rightType = "CONST"
-          elif tree.right[1] in ["IDENTIFIER"]:
-            rightType = "VAR"
-            
-        if rightType in ["VAR", "EXPRESSION"]:
-          if rightType == "EXPRESSION":
-            temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-            rightOperand = temp[1][0]
+        tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+        rightOperand = tempRight[2]
+        number = tempRight[3]
+        jumpNumber = tempRight[4]
+        
+        result = []
+        for i in range(len(rightOperand)):
+          if rightOperand[i][1] == "POP":
+            replaceOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+            rightOperand[i][0] = replaceOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+            temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+            rightOperand[i][0] = temp[1]
             number = temp[2]
+          elif rightOperand[i][1] == "IN":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          if rightOperand[i][1] == "CONST":
+            if tree.operator[0] == "!":
+              result.append([(rightOperand[i][0] ^ 0xffff), "CONST"])
+            elif tree.operator[0] == "-":
+              result.append([-rightOperand[i][0], "CONST"])
+            else:
+              raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+          elif rightOperand[i][1] == "DIR":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            assemblyOperator = "ALB"
+            if tree.operator[0] == "!":
+              assemblyOperator += " NTB"
+            elif tree.operator[0] == "-":
+              assemblyOperator += " NGB"
+            previousLine.setLastLine(CodeLine(assemblyOperator, [0, rightOperand[i][0], resultOperand], None))
+            result.append([resultOperand, "DIR"])
           else:
-            rightOperand = tree.right[0]
-          resultOperand = "TEMP" + str(number)
-          number += 1
-          
-        elif rightType == "CONST":
-          assemblyOperator = "ALV"
-          rightOperand = tree.right[0]
-          resultOperand = "TEMP" + str(number)
-          number += 1
+            raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+            
         
-        if tree.operator[0] == "-":
-          assemblyOperator += " NGB"
-        elif tree.operator[0] == "!":
-          assemblyOperator += " NTB"
-        previousLine.setLastLine(CodeLine(assemblyOperator, [0, rightOperand, resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
+        return previousLine, previousLine.getLastLine(), result, number, jumpNumber
     
     #COMPARATOR
     elif tree.operator[1] == "COMPARATOR":
-      assemblyOperator = ""
-      leftType = "EXPRESSION"
-      rightType = "EXPRESSION"
-      leftOperand = ""
-      rightOperand = ""
-      resultOperand = ""
-      flagBit = -1
-      flagBitNegated = False
-      swapped = False
+      leftOperand = []
+      rightOperand = []
       
-      if isinstance(tree.left, list):
-        if tree.left[1] in ["CHAR", "NUMBER"]:
-          leftType = "CONST"
-        elif tree.left[1] in ["IDENTIFIER"]:
-          leftType = "VAR"
-      if isinstance(tree.right, list):
-        if tree.right[1] in ["CHAR", "NUMBER"]:
-          rightType = "CONST"
-        elif tree.right[1] in ["IDENTIFIER"]:
-          rightType = "VAR"
-          
-      if leftType in ["VAR", "EXPRESSION"] and rightType in ["VAR", "EXPRESSION"]:
-        assemblyOperator = "AND"
-        if leftType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
-          leftOperand = temp[1][0]
-          number = temp[2]
-        else:
-          leftOperand = tree.left[0]
-        if rightType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType == "CONST" and rightType in ["VAR", "EXPRESSION"]:
-        assemblyOperator = "ANB"
-        leftOperand = tree.left[0]
-        if rightType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType in ["VAR", "EXPRESSION"] and rightType == "CONST":
-        assemblyOperator = "ANB"
-        leftOperand = tree.right[0]
-        if leftType == "EXPRESSION":
-          temp = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-        else:
-          rightOperand = tree.left[0]
-        swapped = True
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        
-      elif leftType == "CONST" and rightType == "CONST":
-        assemblyOperator = "ANV"
-        leftOperand = tree.left[0]
-        rightOperand = tree.right[0]
-        resultOperand = "TEMP" + str(number)
-        number += 1
+      tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
+      leftOperand = tempLeft[2]
+      number = tempLeft[3]
+      jumpNumber = tempLeft[4]
       
-      if tree.operator[0] == "==":
-        #Bit SBA 2 =0 test
-        assemblyOperator += " SBA"
-        flagBit = 2
+      for i in range(len(leftOperand)):
+        if leftOperand[0][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          leftOperand[0][0] = replaceOperand
+          leftOperand[0][1] = "DIR"
+        elif leftOperand[0][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, leftOperand[i][1], number)
+          leftOperand[0][0] = temp[1]
+          number = temp[2]
+          leftOperand[0][1] = "DIR"
+        elif leftOperand[0][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [leftOperand[0][0], resultOperand], None))
+          leftOperand[0][0] = resultOperand
+          leftOperand[0][1] = "DIR"
         
-      elif tree.operator[0] == "<>":
-        #Bit SBA 2 =0 test negated?
-        assemblyOperator += " SBA"
-        flagBit = 2
-        flagBitNegated = True
+      tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+      rightOperand = tempRight[2]
+      number = tempRight[3]
+      jumpNumber = tempRight[4]
+      
+      for i in range(len(rightOperand)):
+        if rightOperand[0][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          rightOperand[0][0] = replaceOperand
+          rightOperand[0][1] = "DIR"
+        elif rightOperand[0][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, rightOperand[0][1], number)
+          rightOperand[0][0] = temp[1]
+          number = temp[2]
+          rightOperand[0][1] = "DIR"
+        elif rightOperand[0][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [rightOperand[0][0], resultOperand], None))
+          rightOperand[0][0] = resultOperand
+          rightOperand[0][1] = "DIR"
+      
+      result = []
+      if len(leftOperand) == 1 and len(rightOperand) == 1:
+        if leftOperand[0][1] == "CONST":
+          if rightOperand[0][1] == "CONST":
+            if tree.operator[0] == "==":
+              result.append([int(leftOperand[0][0] == rightOperand[0][0]), "CONST"])
+            elif tree.operator[0] == "<>":
+              result.append([int(leftOperand[0][0] != rightOperand[0][0]), "CONST"])
+            elif tree.operator[0] == "<":
+              result.append([int(leftOperand[0][0] < rightOperand[0][0]), "CONST"])
+            elif tree.operator[0] == ">":
+              result.append([int(leftOperand[0][0] > rightOperand[0][0]), "CONST"])
+            elif tree.operator[0] == "<=":
+              result.append([int(leftOperand[0][0] <= rightOperand[0][0]), "CONST"])
+            elif tree.operator[0] == ">=":
+              result.append([int(leftOperand[0][0] >= rightOperand[0][0]), "CONST"])
+            else:
+              raise Exception("Missing case in: " + tree.cleanPrint())
+          elif rightOperand[0][1] == "DIR":
+            assemblyOperator = "ANB"
+            flagBit = ""
+            if tree.operator[0] == "==":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG2"
+            elif tree.operator[0] == "<>":
+              assemblyOperator += " SBA"
+              flagBit = "NFLAG2"
+            elif tree.operator[0] == "<=":
+              assemblyOperator += " SBB"
+              flagBit = "FLAG1"
+            elif tree.operator[0] == ">=":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG1"
+            elif tree.operator[0] == "<":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG0"
+            elif tree.operator[0] == ">":
+              assemblyOperator += " SBB"
+              flagBit = "FLAG0"
+            else:
+              raise Exception("Missing case in: " + tree.cleanPrint())
+            previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[0][0], rightOperand[0][0]], None))
+            result.append(["", flagBit])
+          else:
+            raise Exception("Invalid type " + rightOperand[0][1] + " in: " + tree.cleanPrint())
+          pass
+        elif leftOperand[0][1] == "DIR":
+          if rightOperand[0][1] == "CONST":
+            assemblyOperator = "ANB"
+            flagBit = ""
+            if tree.operator[0] == "==":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG2"
+            elif tree.operator[0] == "<>":
+              assemblyOperator += " SBA"
+              flagBit = "NFLAG2"
+            elif tree.operator[0] == "<=":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG1"
+            elif tree.operator[0] == ">=":
+              assemblyOperator += " SBB"
+              flagBit = "FLAG1"
+            elif tree.operator[0] == "<":
+              assemblyOperator += " SBB"
+              flagBit = "FLAG0"
+            elif tree.operator[0] == ">":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG0"
+            else:
+              raise Exception("Missing case in: " + tree.cleanPrint())
+            previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[0][0], leftOperand[0][0]], None))
+            result.append(["", flagBit])
+          elif rightOperand[0][1] == "DIR":
+            assemblyOperator = "AND"
+            flagBit = ""
+            if tree.operator[0] == "==":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG2"
+            elif tree.operator[0] == "<>":
+              assemblyOperator += " SBA"
+              flagBit = "NFLAG2"
+            elif tree.operator[0] == "<=":
+              assemblyOperator += " SBB"
+              flagBit = "FLAG1"
+            elif tree.operator[0] == ">=":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG1"
+            elif tree.operator[0] == "<":
+              assemblyOperator += " SBA"
+              flagBit = "FLAG0"
+            elif tree.operator[0] == ">":
+              assemblyOperator += " SBB"
+              flagBit = "FLAG0"
+            else:
+              raise Exception("Missing case in: " + tree.cleanPrint())
+            previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[0][0], rightOperand[0][0]], None))
+            result.append(["", flagBit])
+          else:
+            raise Exception("Invalid type " + rightOperand[0][1] + " in: " + tree.cleanPrint())
+        else:
+          raise Exception("Invalid type " + leftOperand[0][1] + " in: " + tree.cleanPrint())
         
-      elif tree.operator[0] == "<=":
-        if swapped:
-          assemblyOperator += " SBA"
-          flagBit = 1
-        else:
-          assemblyOperator += " SBB"
-          flagBit = 1
-        #Bit SBB CRY
-        
-      elif tree.operator[0] == ">=":
-        if swapped:
-          assemblyOperator += " SBB"
-          flagBit = 1
-        else:
-          assemblyOperator += " SBA"
-          flagBit = 1
-        #Bit SBA CRY
-        
-      elif tree.operator[0] == "<":
-        if swapped:
-          assemblyOperator += " SBB"
-          flagBit = 0
-        else:
-          assemblyOperator += " SBA"
-          flagBit = 0
-        #Bit SBA MST
-        
-      elif tree.operator[0] == ">":
-        if swapped:
-          assemblyOperator += " SBA"
-          flagBit = 0
-        else:
-          assemblyOperator += " SBB"
-          flagBit = 0
-        #Bit SBB MST
-        
-      previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand, rightOperand], None))
-      if flagBit == 0:
-        if flagBitNegated:
-          previousLine.setLastLine(CodeLine("ALB 091", [1, "FLG", resultOperand], None))
-        else:
-          previousLine.setLastLine(CodeLine("ALB AND", [1, "FLG", resultOperand], None))
-      elif flagBit == 1:
-        if flagBitNegated:
-          previousLine.setLastLine(CodeLine("ALB 091", [2, "FLG", resultOperand], None))
-        else:
-          previousLine.setLastLine(CodeLine("ALB AND", [2, "FLG", resultOperand], None))
-        previousLine.setLastLine(CodeLine("ALB SRB", [1, resultOperand, resultOperand], None))
-      elif flagBit ==2:
-        if flagBitNegated:
-          previousLine.setLastLine(CodeLine("ALB 091", [4, "FLG", resultOperand], None))
-          previousLine.setLastLine(CodeLine("ALB RSB", [2, resultOperand, resultOperand], None))
-        else:
-          previousLine.setLastLine(CodeLine("ALB RSB", [2, "FLG", resultOperand], None))
-      return previousLine, [resultOperand], number, jumpNumber
+      return previousLine, previousLine.getLastLine(), result, number, jumpNumber
     
     #KEYWORD
     elif tree.operator[1] == "KEYWORD":
       #PUSH
       if tree.operator[0] == "push":
-        assemblyOperator = "PSD"
-        rightType = "EXPRESSION"
-        rightOperand = ""
-        resultOperand = ""
+        rightOperand = []
         
-        if isinstance(tree.right, list):
-          if tree.right[1] in ["CHAR", "NUMBER"]:
-            rightType = "CONST"
-          elif tree.right[1] in ["IDENTIFIER"]:
-            rightType = "VAR"
-            
-        if rightType in ["VAR", "EXPRESSION"]:
-          if rightType == "EXPRESSION":
-            temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-            rightOperand = temp[1][0]
+        tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+        rightOperand = tempRight[2]
+        number = tempRight[3]
+        jumpNumber = tempRight[4]
+        
+        result = []
+        for i in range(len(rightOperand)):
+          if rightOperand[i][1] == "POP":
+            replaceOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+            rightOperand[i][0] = replaceOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+            temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+            rightOperand[i][0] = temp[1]
             number = temp[2]
+            rightOperand[i][1] = "DIR"
+        if case == 2:
+          previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
+        for i in range(len(rightOperand)-1, -1, -1):
+          if rightOperand[i][1] == "CONST":
+            previousLine.setLastLine(CodeLine("PSV", [rightOperand[i][0]], None))
+            result.append(["", "POP"])
+          elif rightOperand[i][1] == "DIR":
+            previousLine.setLastLine(CodeLine("PSD", [rightOperand[i][0]], None))
+            result.append(["", "POP"])
+          elif rightOperand[i][1] == "IN":
+            previousLine.setLastLine(CodeLine("PSI", [rightOperand[i][0]], None))
+            result.append(["", "POP"])
           else:
-            rightOperand = tree.right[0]
-          
-        elif rightType == "CONST":
-          assemblyOperator = "PSV"
-          rightOperand = tree.right[0]
-          
-        previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand], None))
-        return previousLine, [], number, jumpNumber
+            raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+        if case == 2:
+          previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
+        
+        return previousLine, previousLine.getLastLine(), result, number, jumpNumber
       #POP
       elif tree.operator[0] == "pop":
-        leftType = "VAR"
-        leftOperand = ""
-        swapped = False
+        rightOperand = []
         
-        if isinstance(tree.right, list):
-          if tree.right[1] in ["IDENTIFIER"]:
-            temp = fullScope[tree.right[0]]
-            if temp[0] in ["INT", "BOOLEAN", "CHAR"]:
-              leftType = "VAR"
-              leftOperand = tree.right[0]
-            elif temp[0] in ["ARRAY", "STRING"]:
-              leftType = "ARRAY"
-              leftOperand = tree.right[0]
-          elif tree.right[1] in ["STRING"]:
-            leftType = "ARRAY"
-            leftOperand = tree.right[0]
-        elif isinstance(tree.right, StatementTree):
-          if tree.right.operator[1] == "SUBSCRIPT":
-            leftType = "IVAR"
-            temp = convertIntoPartialSubscript(previousLine, tree.right, fullScope, number, jumpNumber)
-            leftOperand = temp[1][0]
-            number = temp[2]
-            jumpNumber = temp[4]
-          
-        #print(leftType, rightType)
-        #print(leftOperand, rightOperand)
-        if leftType == "VAR":
-          previousLine.setLastLine(CodeLine("PPD", [leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        elif leftType == "IVAR":
-          previousLine.setLastLine(CodeLine("PPI", [leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        else:
-          raise Exception("Missing case in: " + tree.cleanPrint())
+        tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+        rightOperand = tempRight[2]
+        number = tempRight[3]
+        jumpNumber = tempRight[4]
+        
+        result = []
+        for i in range(len(leftOperand)-1, -1, -1):
+          if rightOperand[i][1] == "DIR":
+            previousLine.setLastLine(CodeLine("PPD", [rightOperand[i][0]], None))
+            result.append([rightOperand[i][0], "DIR"])
+          elif rightOperand[i][1] == "IN":
+            previousLine.setLastLine(CodeLine("PPI", [rightOperand[i][0]], None))
+            result.append([rightOperand[i][0], "IN"])
+          else:
+            raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+        
+        return previousLine, previousLine.getLastLine(), result, number, jumpNumber
     
     #SUBSCRIPT
     elif tree.operator[1] == "SUBSCRIPT":
-      rightType = "EXPRESSION"
-      rightOperand = ""
-      leftOperand = ""
-      resultOperand = "TEMP" + str(number)
-      number += 1
+      rightOperand = []
       
-      if isinstance(tree.right, list):
-        if tree.right[1] in ["CHAR", "NUMBER"]:
-          rightType = "CONST"
-          rightOperand = tree.right[0]
-        elif tree.right[1] in ["IDENTIFIER"]:
-          rightType = "VAR"
-          rightOperand = tree.right[0]
-      else:
-        temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-        rightOperand = temp[1][0]
-        number = temp[2]
+      tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+      rightOperand = tempRight[2]
+      number = tempRight[3]
+      jumpNumber = tempRight[4]
       
-      if not isinstance(tree.left, list):
-        raise Exception("Invalid subscript")
-      elif not tree.left[1] == "IDENTIFIER":
-        raise Exception("Invalid subscript")
-      elif not fullScope[tree.left[0]][0] in ["ARRAY", "STRING"]:
-        raise Exception("Invalid subscript")
-      else:
-        leftOperand = tree.left[0]
+      leftOperand = []
       
-      if rightType == "CONST":
-        previousLine.setLastLine(CodeLine("LDI", [leftOperand + "+" + str(rightOperand), resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
-      else:
-        previousLine.setLastLine(CodeLine("ALB ADD", [leftOperand, rightOperand, resultOperand], None))
-        previousLine.setLastLine(CodeLine("LDI", [resultOperand, resultOperand], None))
-        return previousLine, [resultOperand], number, jumpNumber
+      tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
+      leftOperand = tempLeft[2]
+      number = tempLeft[3]
+      jumpNumber = tempLeft[4]
+      
+      if len(rightOperand) == 1:
+        if rightOperand[0][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [rightOperand[0][0], resultOperand], None))
+          rightOperand[0][0] = resultOperand
+          rightOperand[0][1] = "DIR"
+        leftOperandPop = False
+        leftOperandAllPop = True
+        for i in leftOperand:
+          if i[1] == "POP":
+            leftOperandPop = True
+          else:
+            leftOperandAllPop = False
+        if leftOperandPop and leftOperandAllPop:
+          if rightOperand[0][1] == "CONST":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            for i in range(rightOperand[0][0]):
+              previousLine.setLastLine(CodeLine("PPD", []))
+            return previousLine, previousLine.getLastLine(), [[resultOperand, "DIR"]], number, jumpNumber
+          elif rightOperand[0][1] == "DIR":
+            if case == 1:
+              return previousLine, previousLine.getLastLine(), [["", "POP"]], number, jumpNumber
+            else:
+              resultOperand = "TEMP" + str(number)
+              number += 1
+              raise Exception("Incomplete compiler")
+              previousLine.setLastLine(CodeLine("ALB ADD", [leftOperand[0][0], rightOperand[0][0], resultOperand], None))
+              return previousLine, previousLine.getLastLine(), [[resultOperand, "DIR"]], number, jumpNumber
+        elif not leftOperandPop and not leftOperandAllPop:
+          if rightOperand[0][1] == "CONST":
+            return previousLine, previousLine.getLastLine(), [[leftOperand[rightOperand[0][0]][0], "DIR"]], number, jumpNumber
+          elif rightOperand[0][1] == "DIR":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("ALB ADD", [leftOperand[0][0], rightOperand[0][0], resultOperand], None))
+            return previousLine, previousLine.getLastLine(), [[resultOperand, "IN"]], number, jumpNumber
+        else:
+          raise Exception("Problematic subscript in: " + tree.cleanPrint())
     
     #PARAMETERS
     elif tree.operator[1] == "PARAMETERS":
@@ -2881,300 +3277,326 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber):
         raise Exception("Invalid parameter length at: " + tree.cleanPrint())
       for i in range(len(inputNames)):
         #print(StatementTree(inputNames[i], tree.right[i], ["=", "ASSIGNER"]))
-        previousLine, temp, number, jumpNumber = convertIntoPartial(previousLine, StatementTree([inputNames[i], "IDENTIFIER"], tree.right[i], ["=", "ASSIGNER"]), fullScope, number, jumpNumber)
+        previousLine, temp, temp, number, jumpNumber = convertIntoPartial(previousLine, StatementTree([inputNames[i], "IDENTIFIER"], tree.right[i], ["=", "ASSIGNER"]), fullScope, number, jumpNumber)
       returnAddress = "jFUNCTIONRETURN" + str(jumpNumber)
       jumpNumber += 1
       previousLine.setLastLine(CodeLine("PSV", [returnAddress], None))
-      previousLine.setLastLine(CodeLine("JMP", [tree.left[0]], None))
+      previousLine.setLastLine(CodeLine("JMP", [tree.left[0]], None, name = returnAddress))
       
       if funcInfo[0] in ["INT", "CHAR", "BOOLEAN"]:
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        previousLine.setLastLine(CodeLine("PPD", [resultOperand], None, name = returnAddress))
-        return previousLine, [resultOperand], number, jumpNumber
+        return previousLine, previousLine.setLastLine, [["", "POP"]], number, jumpNumber
       
       elif funcInfo[0] in ["ARRAY", "STRING"]:
-        resultOperand = "TEMP" + str(number)
-        number += 1
-        resultList = [resultOperand]
-        previousLine.setLastLine(CodeLine("PPD", [resultOperand], None, name = returnAddress))
-        for i in range(funcInfo[1] - 1):
-          resultOperand = "TEMP" + str(number)
-          number += 1
-          resultList.append(resultOperand)
-          previousLine.setLastLine(CodeLine("PPD", [resultOperand], None))
-        return previousLine, resultList, number, jumpNumber
+        result = []
+        for i in range(funcInfo[1]):
+          result.append(["", "POP"])
+        return previousLine, previousLine.getLastLine(), result, number, jumpNumber
       
       elif funcInfo[0] == "":
-        previousLine.setLastLine(CodeLine("PWS", [], None, name = returnAddress))
-        return previousLine, [], number, jumpNumber
+        previousLine.setLastLine(CodeLine("PWS", [], None))
+        return previousLine, previousLine.getLastLine(), [], number, jumpNumber
       
       else:
         raise Exception("Missing case in: " + tree.cleanPrint())
+      
+    elif tree.operator[1] == "ARRAY":
+      result = []
+      for i in tree.right:
+        temp = convertIntoPartial(previousLine, i, fullScope, number, jumpNumber)
+        if len(temp[2] != 1):
+          raise Exception("Array in array in: ", tree)
+        result.append(i[2][0])
+        number = temp[3]
+        jumpNumber = temp[4]
+      return previousLine, previousLine.getLastLine(), result, number, jumpNumber
     
     #ASSIGNER
     elif tree.operator[1] == "ASSIGNER":
-      leftType = "VAR"
-      rightType = "EXPRESSION"
-      leftOperand = ""
-      rightOperand = ""
-      swapped = False
+      leftOperand = []
+      rightOperand = []
       
-      if isinstance(tree.left, list):
-        if tree.left[1] in ["IDENTIFIER"]:
-          temp = fullScope[tree.left[0]]
-          if temp[0] in ["INT", "BOOLEAN", "CHAR"]:
-            leftType = "VAR"
-            leftOperand = tree.left[0]
-          elif temp[0] in ["ARRAY", "STRING"]:
-            leftType = "ARRAY"
-            leftOperand = tree.left[0]
-      elif isinstance(tree.left, StatementTree):
-        if tree.left.operator[1] == "SUBSCRIPT":
-          leftType = "IVAR"
-          temp = convertIntoPartialSubscript(previousLine, tree.left, fullScope, number, jumpNumber)
-          leftOperand = temp[1][0]
-          number = temp[2]
-          jumpNumber = temp[3]
-          
-      if isinstance(tree.right, list):
-        if tree.right[1] in ["CHAR", "NUMBER", "BOOLEAN"]:
-          rightType = "CONST"
-          rightOperand = [tree.right[0]]
-        elif tree.right[1] in ["STRING"]:
-          rightType = "STRING"
-          rightOperand = tree.right[0][1:-1]
-        elif tree.right[1] in ["IDENTIFIER"]:
-          temp = fullScope[tree.right[0]]
-          if temp[0] in ["INT", "BOOLEAN", "CHAR"]:
-            rightType = "VAR"
-            rightOperand = [tree.right[0]]
-          elif temp[0] in ["ARRAY", "STRING"]:
-            rightType = "ARRAY"
-            rightOperand = tree.right[0]
-            
-      elif isinstance(tree.right, StatementTree):
-        rightType = "EXPRESSION"
-        temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-        rightOperand = temp[1]
-        number = temp[2]
-        jumpNumber = temp[3]
-        
-      #print(leftType, rightType)
-      #print(leftOperand, rightOperand)
-      if leftType == "VAR" and len(rightOperand) == 1:
-        if rightType == "CONST":
-          previousLine.setLastLine(CodeLine("LDV", [rightOperand[0], leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        elif rightType == "VAR":
-          previousLine.setLastLine(CodeLine("LDD", [rightOperand[0], leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        elif rightType == "EXPRESSION":
-          previousLine.setLastLine(CodeLine("LDD", [rightOperand[0], leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        else:
-          raise Exception("Missing case in: " + tree.cleanPrint())
-      elif leftType == "IVAR" and len(rightOperand) == 1:
-        if rightType == "CONST":
-          previousLine.setLastLine(CodeLine("LIV", [rightOperand[0], leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        elif rightType == "VAR":
-          previousLine.setLastLine(CodeLine("LID", [rightOperand[0], leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        elif rightType == "EXPRESSION":
-          previousLine.setLastLine(CodeLine("LID", [rightOperand[0], leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        else:
-          raise Exception("Missing case in: " + tree.cleanPrint())
-      elif leftType  == "ARRAY":
-        if rightType == "STRING":
-          if len(rightOperand) == fullScope[leftOperand][1]:
-            for i in range(len(rightOperand)):
-              previousLine.setLastLine(CodeLine("LDV", [convertCharIntoDecimal("'" + rightOperand[i]), leftOperand + "+" + str(i)], None))
-            return previousLine, [], number, jumpNumber
+      tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber, case=case)
+      leftOperand = tempLeft[2]
+      number = tempLeft[3]
+      jumpNumber = tempLeft[4]
+      
+      tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber, case=case)
+      rightOperand = tempRight[2]
+      number = tempRight[3]
+      jumpNumber = tempRight[4]
+      
+      if len(leftOperand) == len(rightOperand):
+        for i in range(len(leftOperand)):
+          if leftOperand[i][1] == "DIR":
+            if rightOperand[i][1] == "POP":
+              previousLine.setLastLine(CodeLine("PPD", [leftOperand[i][0]], None))
+            elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+              temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+              number = temp[2]
+              previousLine.setLastLine(CodeLine("LDD", [temp[1], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "CONST":
+              previousLine.setLastLine(CodeLine("LDV", [rightOperand[i][0], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "DIR":
+              previousLine.setLastLine(CodeLine("LDD", [rightOperand[i][0], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "IN":
+              previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], leftOperand[i][0]], None))
+            else:
+              raise Exception("Invalid type " + rightOperand[i] + " around = in: " + tree.cleanPrint())
+          elif leftOperand[i][1] == "IN":
+            if rightOperand[i][1] == "POP":
+              previousLine.setLastLine(CodeLine("PPI", [leftOperand[i][0]], None))
+            elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+              temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+              number = temp[2]
+              previousLine.setLastLine(CodeLine("LID", [temp[1], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "CONST":
+              previousLine.setLastLine(CodeLine("LIV", [rightOperand[i][0], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "DIR":
+              previousLine.setLastLine(CodeLine("LID", [rightOperand[i][0], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "IN":
+              previousLine.setLastLine(CodeLine("LII", [rightOperand[i][0], leftOperand[i][0]], None))
+            else:
+              raise Exception("Invalid type " + rightOperand[i] + " around = in: " + tree.cleanPrint())
           else:
-            print(rightOperand, len(rightOperand), fullScope[leftOperand][1])
-            raise Exception("Mismatched array lengths in: " + tree.cleanPrint())
-        elif rightType == "ARRAY":
-          if fullScope[rightOperand][1] == fullScope[leftOperand][1]:
-            for i in range(fullScope[rightOperand][1]):
-              previousLine.setLastLine(CodeLine("LDD", [rightOperand + "+" + str(i), leftOperand + "+" + str(i)], None))
-            return previousLine, [], number, jumpNumber
-          else:
-            print(rightOperand, fullScope[rightOperand][1], fullScope[leftOperand][1])
-            raise Exception("Mismatched array lengths in: " + tree.cleanPrint())
-        elif rightType == "EXPRESSION":
-          if len(rightOperand) == fullScope[leftOperand][1]:
-            for i in range(len(rightOperand)):
-              previousLine.setLastLine(CodeLine("LDD", [rightOperand[i], leftOperand + "+" + str(i)], None))
-            return previousLine, [], number, jumpNumber
-          else:
-            print(len(rightOperand), fullScope[leftOperand][1])
-            raise Exception("Mismatched array lengths in: " + tree.cleanPrint())
-        else:
-          raise Exception("Missing case in: " + tree.cleanPrint())
+            raise Exception("Invalid type " + leftOperand[i] + " around = in: " + tree.cleanPrint())
       else:
-        raise Exception("Missing case in: " + tree.cleanPrint())
+        raise Exception("Mismatched lengths", len(leftOperand), "and", len(rightOperand), " in: " + tree.cleanPrint())
+            
+      return previousLine, previousLine.getLastLine(), [], number, jumpNumber
         
     #MODIFIER
     elif tree.operator[1] == "MODIFIER":
       if tree.operator[0] in ["++", "--"]:
-        leftType = "VAR"
-        leftOperand = ""
-        swapped = False
         assemblyOperator = ""
+        leftOperand = []
         
-        if isinstance(tree.left, list):
-          if tree.left[1] in ["IDENTIFIER"]:
-            temp = fullScope[tree.left[0]]
-            if temp[0] in ["INT", "BOOLEAN", "CHAR"]:
-              leftType = "VAR"
-              leftOperand = tree.left[0]
-        elif isinstance(tree.left, StatementTree):
-          if tree.left.operator[1] == "SUBSCRIPT":
-            leftType = "IVAR"
-            temp = convertIntoPartialSubscript(previousLine, tree.left, fullScope, number, jumpNumber)
-            leftOperand = temp[1][0]
-            number = temp[2]
-            jumpNumber = temp[3]
+        tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
+        leftOperand = tempLeft[2]
+        number = tempLeft[3]
+        jumpNumber = tempLeft[4]
         
         if tree.operator[0] == "++":
           assemblyOperator = "ICB"
         elif tree.operator[0] == "--":
           assemblyOperator = "DCB"
           
-        #print(leftType, rightType)
-        #print(leftOperand, rightOperand)
-        if leftType == "VAR":
-          previousLine.setLastLine(CodeLine("ALB " + assemblyOperator, [0, leftOperand, leftOperand], None))
-          return previousLine, [], number, jumpNumber
-        elif leftType == "IVAR":
-          previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [0, leftOperand], None))
-          previousLine.setLastLine(CodeLine("LIA", [leftOperand], None))
-          return previousLine, [], number, jumpNumber
-      else:
-        leftType = "VAR"
-        rightType = "EXPRESSION"
-        leftOperand = ""
-        rightOperand = ""
-        assemblyOperator = ""
-        
-        if isinstance(tree.left, list):
-          if tree.left[1] in ["IDENTIFIER"]:
-            temp = fullScope[tree.left[0]]
-            if temp[0] in ["INT", "BOOLEAN", "CHAR"]:
-              leftType = "VAR"
-              leftOperand = tree.left[0]
-        elif isinstance(tree.left, StatementTree):
-          if tree.left.operator[1] == "SUBSCRIPT":
-            leftType = "IVAR"
-            temp = convertIntoPartialSubscript(previousLine, tree.left, fullScope, number, jumpNumber)
-            leftOperand = temp[1][0]
-            number = temp[2]
-            jumpNumber = temp[3]
-            
-        if isinstance(tree.right, list):
-          if tree.right[1] in ["CHAR", "NUMBER"]:
-            rightType = "CONST"
-            rightOperand = tree.right[0]
-          elif tree.right[1] in ["IDENTIFIER"]:
-            temp = fullScope[tree.right[0]]
-            if temp[0] in ["INT", "BOOLEAN", "CHAR"]:
-              rightType = "VAR"
-              rightOperand = tree.right[0]
-        elif isinstance(tree.right, StatementTree):
-          rightType = "EXPRESSION"
-          temp = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
-          rightOperand = temp[1][0]
-          number = temp[2]
-          jumpNumber = temp[3]
-        
-        if tree.operator[0] == "+=":
-          assemblyOperator = "ADD"
-        elif tree.operator[0] == "-=":
-          assemblyOperator = "SBB"
-        elif tree.operator[0] == "*=":
-          assemblyOperator = "MLT"
-        elif tree.operator[0] == "/=":
-          assemblyOperator = "DVB"
-        elif tree.operator[0] == "%=":
-          assemblyOperator += "DVB"
-          if leftType == "VAR":
-            if rightType == "CONST":
-              previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [rightOperand, leftOperand], None))
-              previousLine.setLastLine(CodeLine("LDD", ["ACC2", leftOperand], None))
-              return previousLine, [], number, jumpNumber
-            elif rightType == "VAR":
-              previousLine.setLastLine(CodeLine("AND " + assemblyOperator, [rightOperand, leftOperand], None))
-              previousLine.setLastLine(CodeLine("LDD", ["ACC2", leftOperand], None))
-              return previousLine, [], number, jumpNumber
-            elif rightType == "EXPRESSION":
-              previousLine.setLastLine(CodeLine("AND " + assemblyOperator, [rightOperand, leftOperand], None))
-              previousLine.setLastLine(CodeLine("LDD", ["ACC2", leftOperand], None))
-              return previousLine, [], number, jumpNumber
-          elif leftType == "IVAR":
-            if rightType == "CONST":
-              previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [rightOperand, leftOperand], None))
-              previousLine.setLastLine(CodeLine("LID", ["ACC2", leftOperand], None))
-              return previousLine, [], number, jumpNumber
-            elif rightType == "VAR":
-              previousLine.setLastLine(CodeLine("AND " + assemblyOperator, [rightOperand, leftOperand], None))
-              previousLine.setLastLine(CodeLine("LID", ["ACC2", leftOperand], None))
-              return previousLine, [], number, jumpNumber
-            elif rightType == "EXPRESSION":
-              previousLine.setLastLine(CodeLine("AND " + assemblyOperator, [rightOperand, leftOperand], None))
-              previousLine.setLastLine(CodeLine("LID", ["ACC2", leftOperand], None))
-              return previousLine, [], number, jumpNumber
-        elif tree.operator[0] == "&=":
-          assemblyOperator += " AND"
-        elif tree.operator[0] == "|=":
-          assemblyOperator += " ORR"
-        elif tree.operator[0] == "^=":
-          assemblyOperator += " XOR"
+        for i in range(len(leftOperand)):
+          if leftOperand[i][1] == "DIR":
+            previousLine.setLastLine(CodeLine("ALB " + assemblyOperator, [0, leftOperand[i][0], leftOperand[i][0]], None))
+          elif leftOperand[i][1] == "IN":
+            previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [0, leftOperand[i][0]], None))
+            previousLine.setLastLine(CodeLine("LIA", [leftOperand[i][0]], None))
           
-        #print(leftType, rightType)
-        #print(leftOperand, rightOperand)
-        if leftType == "VAR":
-          if rightType == "CONST":
-            previousLine.setLastLine(CodeLine("ALB " + assemblyOperator, [rightOperand, leftOperand, leftOperand], None))
-            return previousLine, [], number, jumpNumber
-          elif rightType == "VAR":
-            previousLine.setLastLine(CodeLine("ALD " + assemblyOperator, [rightOperand, leftOperand, leftOperand], None))
-            return previousLine, [], number, jumpNumber
-          elif rightType == "EXPRESSION":
-            previousLine.setLastLine(CodeLine("ALD " + assemblyOperator, [rightOperand, leftOperand, leftOperand], None))
-            return previousLine, [], number, jumpNumber
-          else:
-            raise Exception("Missing case in: " + tree.cleanPrint())
-        elif leftType == "IVAR":
-          if rightType == "CONST":
-            previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [rightOperand, leftOperand], None))
-            previousLine.setLastLine(CodeLine("LIA", [leftOperand], None))
-            return previousLine, [], number, jumpNumber
-          elif rightType == "VAR":
-            previousLine.setLastLine(CodeLine("AND " + assemblyOperator, [rightOperand, leftOperand], None))
-            previousLine.setLastLine(CodeLine("LIA", [leftOperand], None))
-            return previousLine, [], number, jumpNumber
-          elif rightType == "EXPRESSION":
-            previousLine.setLastLine(CodeLine("AND " + assemblyOperator, [rightOperand, leftOperand], None))
-            previousLine.setLastLine(CodeLine("LIA", [leftOperand], None))
-            return previousLine, [], number, jumpNumber
-          else:
-            raise Exception("Missing case in: " + tree.cleanPrint())
+        return previousLine, previousLine.getLastLine(), [], number, jumpNumber
+        
+      else:
+        leftOperand = []
+        rightOperand = []
+        
+        tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
+        leftOperand = tempLeft[2]
+        number = tempLeft[3]
+        jumpNumber = tempLeft[4]
+          
+        tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
+        rightOperand = tempRight[2]
+        number = tempRight[3]
+        jumpNumber = tempRight[4]
+        
+        for i in range(len(rightOperand)):
+          if rightOperand[i][1] == "POP":
+            replaceOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+            rightOperand[i][0] = replaceOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+            temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+            rightOperand[i][0] = temp[1]
+            number = temp[2]
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "IN":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          
+        if len(leftOperand) == len(rightOperand):
+          for i in range(len(leftOperand)):
+            if leftOperand[i][1] == "DIR":
+              if rightOperand[i][1] == "CONST":
+                if tree.operator[0] != "%=":
+                  assemblyOperator = "ALB"
+                  if tree.operator[0] == "+=":
+                    assemblyOperator += " ADD"
+                  elif tree.operator[0] == "-=":
+                    assemblyOperator += " SBB"
+                  elif tree.operator[0] == "*=":
+                    assemblyOperator += " MLT"
+                  elif tree.operator[0] == "/=":
+                    assemblyOperator += " DVB"
+                  elif tree.operator[0] == ">>=":
+                    assemblyOperator += " RSB"
+                  elif tree.operator[0] == "<<=":
+                    assemblyOperator += " LSB"
+                  elif tree.operator[0] == "&=":
+                    assemblyOperator += " AND"
+                  elif tree.operator[0] == "|=":
+                    assemblyOperator += " ORR"
+                  elif tree.operator[0] == "^=":
+                    assemblyOperator += " XOR"
+                  else:
+                    raise Exception("Missing case in: " + tree.cleanPrint())
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0], leftOperand[i][0]], None))
+                else:
+                  assemblyOperator = "ANB DVB"
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0]], None))
+                  previousLine.setLastLine(CodeLine("LDD", ["ACC2", leftOperand[i][0]], None))
+              elif rightOperand[i][1] == "DIR":
+                if tree.operator[0] != "%=":
+                  assemblyOperator = "ALD"
+                  if tree.operator[0] == "+=":
+                    assemblyOperator += " ADD"
+                  elif tree.operator[0] == "-=":
+                    assemblyOperator += " SBA"
+                  elif tree.operator[0] == "*=":
+                    assemblyOperator += " MLT"
+                  elif tree.operator[0] == "/=":
+                    assemblyOperator += " DVA"
+                  elif tree.operator[0] == "%=":
+                    assemblyOperator += " DVA"
+                  elif tree.operator[0] == ">>=":
+                    assemblyOperator += " RSA"
+                  elif tree.operator[0] == "<<=":
+                    assemblyOperator += " LSA"
+                  elif tree.operator[0] == "&=":
+                    assemblyOperator += " AND"
+                  elif tree.operator[0] == "|=":
+                    assemblyOperator += " ORR"
+                  elif tree.operator[0] == "^=":
+                    assemblyOperator += " XOR"
+                  else:
+                    raise Exception("Missing case in: " + tree.cleanPrint())
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], leftOperand[i][0]], None))
+                else:
+                  assemblyOperator = "AND DVA"
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
+                  previousLine.setLastLine(CodeLine("LDD", ["ACC2", leftOperand[i][0]], None))
+            elif leftOperand[i][1] == "IN":
+              if rightOperand[i][1] == "CONST":
+                if tree.operator[0] != "%=":
+                  assemblyOperator = "ANB"
+                  if tree.operator[0] == "+=":
+                    assemblyOperator += " ADD"
+                  elif tree.operator[0] == "-=":
+                    assemblyOperator += " SBB"
+                  elif tree.operator[0] == "*=":
+                    assemblyOperator += " MLT"
+                  elif tree.operator[0] == "/=":
+                    assemblyOperator += " DVB"
+                  elif tree.operator[0] == ">>=":
+                    assemblyOperator += " RSB"
+                  elif tree.operator[0] == "<<=":
+                    assemblyOperator += " LSB"
+                  elif tree.operator[0] == "&=":
+                    assemblyOperator += " AND"
+                  elif tree.operator[0] == "|=":
+                    assemblyOperator += " ORR"
+                  elif tree.operator[0] == "^=":
+                    assemblyOperator += " XOR"
+                  else:
+                    raise Exception("Missing case in: " + tree.cleanPrint())
+                  tempOperand = "TEMP" + str(number)
+                  number += 1
+                  previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], tempOperand], None))
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], tempOperand], None))
+                  previousLine.setLastLine(CodeLine("LIA", [leftOperand[i][0]], None))
+                else:
+                  tempOperand = "TEMP" + str(number)
+                  number += 1
+                  assemblyOperator = "ANB DVB"
+                  previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], tempOperand], None))
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], tempOperand], None))
+                  previousLine.setLastLine(CodeLine("LID", ["ACC2", leftOperand[i][0]], None))
+              elif rightOperand[i][1] == "DIR":
+                if tree.operator[0] != "%=":
+                  assemblyOperator = "AND"
+                  if tree.operator[0] == "+=":
+                    assemblyOperator += " ADD"
+                  elif tree.operator[0] == "-=":
+                    assemblyOperator += " SBA"
+                  elif tree.operator[0] == "*=":
+                    assemblyOperator += " MLT"
+                  elif tree.operator[0] == "/=":
+                    assemblyOperator += " DVA"
+                  elif tree.operator[0] == "%=":
+                    assemblyOperator += " DVA"
+                  elif tree.operator[0] == ">>=":
+                    assemblyOperator += " RSA"
+                  elif tree.operator[0] == "<<=":
+                    assemblyOperator += " LSA"
+                  elif tree.operator[0] == "&=":
+                    assemblyOperator += " AND"
+                  elif tree.operator[0] == "|=":
+                    assemblyOperator += " ORR"
+                  elif tree.operator[0] == "^=":
+                    assemblyOperator += " XOR"
+                  else:
+                    raise Exception("Missing case in: " + tree.cleanPrint())
+                  tempOperand = "TEMP" + str(number)
+                  number += 1
+                  previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], tempOperand], None))
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [tempOperand, rightOperand[i][0]], None))
+                  previousLine.setLastLine(CodeLine("LIA", [leftOperand[i][0]], None))
+                else:
+                  tempOperand = "TEMP" + str(number)
+                  number += 1
+                  assemblyOperator = "AND DVA"
+                  previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], tempOperand], None))
+                  previousLine.setLastLine(CodeLine(assemblyOperator, [tempOperand, rightOperand[i][0]], None))
+                  previousLine.setLastLine(CodeLine("LID", ["ACC2", leftOperand[i][0]], None))
+              else:
+                raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+            else:
+              raise Exception("Invalid type " + leftOperand[i][1] + " in: " + tree.cleanPrint())
         else:
-          raise Exception("Missing case in: " + tree.cleanPrint())
+          raise Exception("Mismatched operand lengths in: " + tree.cleanPrint())
+          
+        return previousLine, previousLine.getLastLine(), [], number, jumpNumber
           
   elif isinstance(tree, list):
+    if debug:
+      #print("Tree is list")
+      pass
     if len(tree) == 2:
       if tree[1] == "IDENTIFIER":
-        if fullScope[tree[0]] in ["CHAR, BOOLEAN, INT"]:
-          return previousLine, [tree[0]], number, jumpNumber
-      elif tree[1] in ["NUMBER", "CHAR"]:
-        return previousLine, [tree[0]], number, jumpNumber
-  return previousLine, ["NONE"], number, jumpNumber
+        
+        if fullScope[tree[0]][0] in ["CHAR", "BOOLEAN", "INT"]:
+          return previousLine, previousLine, [[tree[0], "DIR"]], number, jumpNumber
+        elif fullScope[tree[0]][0] in ["ARRAY", "STRING"]:
+          result = [[tree[0], "DIR"]]
+          for i in range(1, fullScope[tree[0]][1]):
+            result.append([tree[0] + "+" + str(i), "DIR"])
+          return previousLine, previousLine, result, number, jumpNumber
+      elif tree[1] in ["NUMBER", "CHAR", "BOOLEAN"]:
+        if debug:
+          #print("Tree in NUMBER, CHAR, BOOLEAN")
+          pass
+        return previousLine, previousLine, [[tree[0], "CONST"]], number, jumpNumber
+      elif tree[1] == "STRING":
+        result = []
+        for i in tree[0][1:-1]:
+          result.append([convertCharIntoDecimal("'" + i), "CONST"])
+        return previousLine, previousLine, result, number, jumpNumber
+      
+  raise Exception("Missing case: ", tree)
+  return previousLine, previousLine, ["NONE"], number, jumpNumber
 
 def compiler():
       
+  global debug
+  
   lowerLetters = "abcdefghijklmnopqrstuvwxyz"
   upperLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   letters = lowerLetters + upperLetters + "_"
@@ -3198,10 +3620,13 @@ def compiler():
   source = open("Source.txt", "r")
   
   #Converting the source codes into tokens
-  print("==============================================TOKENISATION==============================================")
+  if debug:
+    print("==============================================TOKENISATION==============================================")
+  else:
+    print("-=TOKENISATION=-")
   
   splitters = " \n"
-  tokenSplitters = ",+-*/%|&^!=><;({[)}]\'\""
+  tokenSplitters = ",+-*/%|&^!=><;({[)}]\'\":"
 
   string = ""
   pretokens = []
@@ -3276,7 +3701,7 @@ def compiler():
   while i < len(pretokens):
     if pretokens[i] == "=":
       if i - 1 >= 0:
-        if pretokens[i-1] in operators:
+        if pretokens[i-1] in operators or pretokens[i - 1] in [">>" or "<<"]:
           tokens[-1] += "="
         elif pretokens[i-1] in compareChars:
           tokens[-1] += "="
@@ -3324,10 +3749,15 @@ def compiler():
     
   source.close()
     
-  print(tokens)
+  if debug:
+    print(tokens)
+    pass
   
   #Identifying what the tokens are
-  print("==============================================IDENTIFYING TOKENS==============================================")
+  if debug:
+    print("==============================================IDENTIFYING TOKENS==============================================")
+  else:
+    print("-=IDENTIFYING TOKENS=-")
   #token type identification state machine
   tokenStateMap = {}
   
@@ -3346,6 +3776,7 @@ def compiler():
   tokenState["<"] = "<"
   tokenState["="] = "ASSIGNER"
   tokenState[";"] = "RETURN"
+  tokenState[":"] = "SLICE"
   tokenState["{"] = "OPEN CURLY"
   tokenState["}"] = "CLOSE CURLY"
   tokenState["("] = "OPEN ROUND"
@@ -3466,7 +3897,9 @@ def compiler():
       return
     tokenTypeIdentifier.setState("S")
     
-  print(tokensTyped)
+  if debug:
+    print(tokensTyped)
+    pass
   
   keywords = ["if", "elif", "else", "for", "in", "to", "while", "def", "pause", "graphics", "pop", "push", "pass", "jump", "return"]
   booleanConsts = ["true", "false"]
@@ -3495,13 +3928,20 @@ def compiler():
         print("ERROR: Invalid comparator")
         print(i[0])
     
-  print(tokensTyped)
+  if debug:
+    print(tokensTyped)
+    pass
   tokensByLine = sortIntoLines(tokensTyped)
     
-  print("----------------------tokensByLine----------------------")
-  print(tokensByLine)
+  if debug:
+    print("----------------------tokensByLine----------------------")
+    print(tokensByLine)
+    pass
   
-  print("==============================================CONSTRUCTING OPERATOR TREE==============================================")
+  if debug:
+    print("==============================================CONSTRUCTING OPERATOR TREE==============================================")
+  else:
+    print("-=CONSTRUCTING OPERATOR TREE=-")
   
   tokenTree = []
   for i in tokensByLine:
@@ -3509,10 +3949,15 @@ def compiler():
     #print(constructTree(i))
     tokenTree.append(constructTree(i))
   
-  print("----------------------TOKEN TREE----------------------")
-  print(tokenTree)
+  if debug:
+    print("----------------------TOKEN TREE----------------------")
+    print(tokenTree)
+    pass
   
-  print("==============================================BUILDING SYMBOL TABLE AND TYPE CHECKING==============================================")
+  if debug:
+    print("==============================================BUILDING SYMBOL TABLE AND TYPE CHECKING==============================================")
+  else:
+    print("-=BUILDING SYMBOL TABLE AND TYPE CHECKING=-")
   
   defaultSymbols = ["TTY", "OUTPUT", "CTRLR1P", "CTRLR1H", "CTRLR2P", "CTRLR2H", "KYBD", "RND", "MODE", "PRCT", "SELECT", 
                                  "STKPNTR", "ACC2", "FLG", "BinaryToBCD", "BCDToASCII", "SPR0COORD", "SPR0CLR", "SPR1COORD", 
@@ -3526,9 +3971,6 @@ def compiler():
                                  "SPR29CLR", "SPR30COORD", "SPR30CLR", "SPR31COORD", "SPR31CLR"]
   
   defaultFunctions = FunctionScope(None)
-  defaultFunctions.addFunction("print", "NONE", [["CHAR",0]], 0, ["PRINT1"])
-  defaultFunctions.addFunction("print", "NONE", [["INT",0]], 1, ["PRINT2"])
-  defaultFunctions.addFunction("print", "NONE", [["BOOLEAN",0]], 2, ["PRINT3"])
   defaultVariables = VariableScope(None)
   defaultVariables.addSpecialVariable("TTY", "CHAR", "TTY")
   defaultVariables.addSpecialVariable("keyboard", "CHAR", "KYBD")
@@ -3547,32 +3989,48 @@ def compiler():
   for i in range(32):
     defaultVariables.addSpecialVariable("sprite" + str(i) + "colour", "INT", "SPR" + str(i) + "CLR")
     defaultVariables.addSpecialVariable("sprite" + str(i) + "coordinates", "INT", "SPR" + str(i) + "COORD")
-  tree, variableTable, arrayTable, functionTable, number, totalScope = determineTypeOfCode(tokenTree, defaultVariables, ArrayScope(None), defaultFunctions, 3, [])
+  tree, variableTable, arrayTable, functionTable, number, totalScope = determineTypeOfCode(tokenTree, defaultVariables, ArrayScope(None), defaultFunctions, 0, [])
   
   dictionaryScope = {}
   for i in totalScope:
     dictionaryScope[i[0]] = i[1:5]
   
-  #print("----------------------TOKEN TREE----------------------")
-  #print(tree)
-  print("----------------------SYMBOL TABLE----------------------")
-  #print(totalScope)
-  print(dictionaryScope)
+  if debug:
+    #print("----------------------TOKEN TREE----------------------")
+    #print(tree)
+    print("----------------------SYMBOL TABLE----------------------")
+    #print(totalScope)
+    print(dictionaryScope)
+    pass
   tree = removeDeclarationsCode(tree)
   tree = removeEmptyLines(tree)
-  #print("----------------------TOKEN TREE----------------------")
-  #print(tree)
   
+  if debug:
+    #print("----------------------TOKEN TREE----------------------")
+    #print(tree)
+    pass
   
-  print("==============================================BUILDING CONTROL GRAPH==============================================")
+  if debug:
+    print("==============================================BUILDING CONTROL GRAPH==============================================")
+  else:
+    print("-=BUILDING CONTROL GRAPH=-")
   
   controlGraph = convertCodeIntoPartial(tree, CodeLine("", [], None), dictionaryScope)[0]
-  print("----------------------CONTROL GRAPH----------------------")
-  print(controlGraph.printAllCode())
   
-  print("==============================================OPTIMISING==============================================")
+  if debug:
+    print("----------------------CONTROL GRAPH----------------------")
+    print(controlGraph.printAllCode())
+    pass
   
-  print("==============================================ASSIGNING SYMBOLS SPACE IN MEMORY==============================================")
+  if debug:
+    print("==============================================OPTIMISING==============================================")
+  else:
+    print("-=OPTIMISING=-")
+  
+  if debug:
+    print("==============================================ASSIGNING SYMBOLS SPACE IN MEMORY==============================================")
+  else:
+    print("-=ASSIGNING SYMBOLS SPACE IN MEMORY=-")
   memoryDictionary = {}
   startOfWRAM = 4096
   memoryAddress = startOfWRAM
@@ -3580,43 +4038,60 @@ def compiler():
     if i[0] != "f" and not i in defaultSymbols:
       memoryDictionary[i] = memoryAddress
       memoryAddress += dictionaryScope[i][1]
-      #print(i, dictionaryScope[i])
-      #print(dictionaryScope[i][1], memoryAddress)
+      if debug:
+        #print(i, dictionaryScope[i])
+        #print(dictionaryScope[i][1], memoryAddress)
+        pass
       
-  print(memoryDictionary)
+  if debug:
+    print(memoryDictionary)
+    pass
   
-  print("==============================================CONVERTING TO ASSEMBLY==============================================")
+  if debug:
+    print("==============================================CONVERTING TO ASSEMBLY==============================================")
+  else:
+    print("-=CONVERTING TO ASSEMBLY=-")
   currentLine = controlGraph
   
   while currentLine != None:
     for i in range(len(currentLine.operands)):
-      if isinstance(currentLine.operands[i], str):
-        if "+" in currentLine.operands[i]:
-          #Convert array indices
-          temp = currentLine.operands[i].split("+")
-          currentLine.operands[i] = memoryDictionary[temp[0]] + int(temp[1])
+      try:
+        if isinstance(currentLine.operands[i], str):
+          if "+" in currentLine.operands[i]:
+            #Convert array indices
+            temp = currentLine.operands[i].split("+")
+            currentLine.operands[i] = memoryDictionary[temp[0]] + int(temp[1])
+            currentLine.operands[i] = formattedDecimalToHex(currentLine.operands[i])
+          elif currentLine.operands[i] not in memoryDictionary.keys() and currentLine.operands[i][0] not in "jf" and not currentLine.operands[i] in defaultSymbols:
+            memoryDictionary[currentLine.operands[i]] = memoryAddress
+            memoryAddress += 1
+        elif isinstance(i, int):
           currentLine.operands[i] = formattedDecimalToHex(currentLine.operands[i])
-        elif currentLine.operands[i] not in memoryDictionary.keys() and currentLine.operands[i][0] not in "jf" and not currentLine.operands[i] in defaultSymbols:
-          memoryDictionary[currentLine.operands[i]] = memoryAddress
-          memoryAddress += 1
-      elif isinstance(i, int):
-        currentLine.operands[i] = formattedDecimalToHex(currentLine.operands[i])
-      pass
+        pass
+      except Exception as e:
+        print(currentLine)
+        raise e
     currentLine = currentLine.nextLineCode
     pass
-  
-  print(controlGraph.printAllCode())
-  print(memoryDictionary)
+  if debug:
+    #print(controlGraph.printAllCode())
+    print(memoryDictionary)
+    pass
   
   assemblySymbolTable = ""
   for i in memoryDictionary.keys():
     assemblySymbolTable += "%" + i + " = " + formattedDecimalToHex(memoryDictionary[i]) + "\n"
     
   finalAssembly = assemblySymbolTable + controlGraph.printAllCode()
-  print("----------------------FINAL ASSEMBLY----------------------")
-  print(finalAssembly)
+  if debug:
+    print("----------------------FINAL ASSEMBLY----------------------")
+    print(finalAssembly)
+    pass
   
-  print("==============================================WRITING TO FILE==============================================")    
+  if debug:
+    print("==============================================WRITING TO FILE==============================================")  
+  else:
+    print("-=WRITING TO FILE=-")  
   
   assembly = open("Assembly.txt", "w")
   assembly.write(finalAssembly)
