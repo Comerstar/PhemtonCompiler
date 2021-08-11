@@ -50,6 +50,20 @@ def copyKeyboardIndirectTest2 () {
   }
 }
 
+def copyKeyboardIndirectTest3 () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num[i] = keyboard + 0;
+      TTY = num[0];
+    }
+  }
+}
+
 #Converts an integer into a string
 string[5] def intToStr (int number) {
   string[5] result = "00000";
@@ -242,6 +256,9 @@ while true {
   }
   elif keyboard == 0x0035 {
     copyKeyboardIndirectTest2();
+  }
+  elif keyboard == 0x0036 {
+    copyKeyboardIndirectTest3();
   }
   else {
     for i in invalidInput {

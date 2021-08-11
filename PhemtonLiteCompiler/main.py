@@ -2,7 +2,7 @@
 #The Assembler for the Femto-4 found on CircuitVerse.
 #Refer to Developer Guide.txt if you want to understand what this is for. 
 
-debug = False
+debug = True
 if debug:
   print("Running")
 
@@ -556,6 +556,46 @@ class CodeLine():
   def addName(self, name):
     if name != None:
       self.name.append(name)
+      
+  def convertToACCDLoad(self, newOperand):
+    global debug
+    if self.assemblyCode[0:2] == "AN" and self.assemblyCode[2] in "RVBD":
+      self.assemblyCode = "AL" + self.assemblyCode[2:7]
+      self.operands.append(newOperand)
+      if debug:
+        print(self, self.nextLine)
+    else:
+      raise Exception("Attempted to convert line", self, "into ALU load line")
+      
+  def convertToACCILoad(self, newOperand):
+    global debug
+    if self.assemblyCode[0:2] == "AN" and self.assemblyCode[2] in "RVBD":
+      self.nextLine = CodeLine("LIA", [newOperand], self.nextLine)
+      self.nextLineCode = self.nextLine
+      if debug:
+        print(self, self.nextLine, self.nextLine.nextLine)
+    else:
+      raise Exception("Attempted to convert line", self, "into ALU load line")
+      
+  def convertToACC2DLoad(self, newOperand):
+    global debug
+    if self.assemblyCode[0:2] == "AN" and self.assemblyCode[2] in "RVBD":
+      self.nextLine = CodeLine("LDD", ["ACC2", newOperand], self.nextLine)
+      self.nextLineCode = self.nextLine
+      if debug:
+        print(self, self.nextLine, self.nextLine.nextLine)
+    else:
+      raise Exception("Attempted to convert line", self, "into ALU load line")
+      
+  def convertToACC2ILoad(self, newOperand):
+    global debug
+    if self.assemblyCode[0:2] == "AN" and self.assemblyCode[2] in "RVBD":
+      self.nextLine = CodeLine("LDI", ["ACC2", newOperand], self.nextLine)
+      self.nextLineCode = self.nextLine
+      if debug:
+        print(self, self.nextLine, self.nextLine.nextLine)
+    else:
+      raise Exception("Attempted to convert line", self, "into ALU load line")
     
   def printAllCode(self):
     #print("Called print all on ", self)
@@ -1835,8 +1875,8 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
     
     while i < len(tree):
       if debug:
-        print("-----")
-        print(tree[i])
+        #print("-----")
+        #print(tree[i])
         pass
       if isinstance(tree[i], list):
         if len(tree[i]) == 2:
@@ -1890,8 +1930,9 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
             
             temp = convertIntoPartial(previousLine, tree[i].right, fullScope, 0, jumpNumber)
             previousLine = temp[1]
-            jumpNumber = temp[4]
             result = temp[2]
+            tempNumber = temp[3]
+            jumpNumber = temp[4]
             
             handlingIf = True
             if len(result) == 1:
@@ -1916,13 +1957,49 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                 jumpNumber = temp[2]
                 previousLine.getLastLine().addName(pastJumpName)
                 previousConditional.setNextLineFalse(previousLine)
-                
               elif result[0][1] == "IN":
                 pastJumpName = "jPASTIF" + str(jumpNumber)
                 jumpNumber += 1
                 previousConditionalName = pastJumpName
                 previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
                 previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "ACC":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = None
+                if result[0][2] == previousLine.getLastLine():
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                else:
+                  tempOperator = "TEMP" + str(tempNumber)
+                  tempNumber += 1
+                  result[0][2].convertToACCDLoad(tempOperator)
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "ACC2":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                tempOperator = "TEMP" + str(tempNumber)
+                tempNumber += 1
+                result[0][2].convertToACC2DLoad(tempOperator)
+                previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
                 previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
                 previousLine.setLastLine(previousConditional)
                 i += 1
@@ -2001,8 +2078,9 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
             
             temp = convertIntoPartial(previousLine, tree[i].right, fullScope, 0, jumpNumber)
             previousLine = temp[1]
-            jumpNumber = temp[4]
             result = temp[2]
+            tempNumber = temp[3]
+            jumpNumber = temp[4]
             
             if len(result) == 1:
               if result[0][1] == "CONST":
@@ -2026,13 +2104,49 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                 jumpNumber = temp[2]
                 previousLine.getLastLine().addName(pastJumpName)
                 previousConditional.setNextLineFalse(previousLine)
-                
               elif result[0][1] == "IN":
                 pastJumpName = "jPASTIF" + str(jumpNumber)
                 jumpNumber += 1
                 previousConditionalName = pastJumpName
                 previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
                 previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "ACC":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                previousConditional = None
+                if result[0][2] == previousLine.getLastLine():
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                else:
+                  tempOperator = "TEMP" + str(tempNumber)
+                  tempNumber += 1
+                  result[0][2].convertToACCDLoad(tempOperator)
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                i += 1
+                temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                previousLine = temp[1]
+                jumpNumber = temp[2]
+                previousLine.getLastLine().addName(pastJumpName)
+                previousConditional.setNextLineFalse(previousLine)
+              elif result[0][1] == "ACC2":
+                pastJumpName = "jPASTIF" + str(jumpNumber)
+                jumpNumber += 1
+                previousConditionalName = pastJumpName
+                tempOperator = "TEMP" + str(tempNumber)
+                tempNumber += 1
+                result[0][2].convertToACC2DLoad(tempOperator)
+                previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
                 previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
                 previousLine.setLastLine(previousConditional)
                 i += 1
@@ -2116,6 +2230,7 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                 tempRight = convertIntoPartial(previousLine, StatementTree(tree[i].right.right.right, counterIdentifier, [">","COMPARATOR"]), fullScope, tempLeft[3], jumpNumber)
                 previousLine = tempRight[1]
                 result = tempRight[2]
+                tempNumber = tempRight[3]
                 jumpNumber = tempRight[4]
                 
                 if len(result) == 1:
@@ -2145,13 +2260,55 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                     previousLine = previousLine.getLastLine()
                     previousLine.getLastLine().addName(pastJumpName)
                     previousConditional.setNextLineFalse(previousLine)
-                    
                   elif result[0][1] == "IN":
                     pastJumpName = "jPASTFOR" + str(jumpNumber)
                     jumpNumber += 1
                     previousConditionalName = pastJumpName
                     previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
                     previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                  elif result[0][1] == "ACC":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    previousConditional = None
+                    if result[0][2] == previousLine.getLastLine():
+                      previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                      previousLine.setLastLine(previousConditional)
+                    else:
+                      tempOperator = "TEMP" + str(tempNumber)
+                      tempNumber += 1
+                      result[0][2].convertToACCDLoad(tempOperator)
+                      previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
+                      previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                      previousLine.setLastLine(previousConditional)
+                    i += 1
+                    temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                    previousLine = temp[1]
+                    jumpNumber = temp[2]
+                    previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                    previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                    previousLine = previousLine.getLastLine()
+                    previousLine.getLastLine().addName(pastJumpName)
+                    previousConditional.setNextLineFalse(previousLine)
+                  elif result[0][1] == "ACC2":
+                    pastJumpName = "jPASTFOR" + str(jumpNumber)
+                    jumpNumber += 1
+                    previousConditionalName = pastJumpName
+                    tempOperator = "TEMP" + str(tempNumber)
+                    tempNumber += 1
+                    result[0][2].convertToACC2DLoad(tempOperator)
+                    previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
                     previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
                     previousLine.setLastLine(previousConditional)
                     i += 1
@@ -2223,6 +2380,8 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                     previousLine = previousLine.getLastLine()
                     previousLine.getLastLine().addName(pastJumpName)
                     previousConditional.setNextLineFalse(previousLine)
+                  else:
+                    raise Exception("Unaccounted type " + result[0][1] + " in " + tree[i].cleanPrint())
                 else:
                   raise Exception("Invalid condition for for in: " + tree[i].cleanPrint())
               
@@ -2281,7 +2440,6 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                   previousLine = previousLine.getLastLine()
                   previousLine.getLastLine().addName(pastJumpName)
                   previousConditional.setNextLineFalse(previousLine)
-                  
                 elif result[0][1] == "IN":
                   pastJumpName = "jPASTFOR" + str(jumpNumber)
                   jumpNumber += 1
@@ -2295,6 +2453,49 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                   previousLine = temp[1]
                   jumpNumber = temp[2]
                   previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier, counterIdentifier], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "ACC":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = None
+                  if result[0][2] == previousLine.getLastLine():
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                  else:
+                    tempOperator = "TEMP" + str(tempNumber)
+                    tempNumber += 1
+                    result[0][2].convertToACCDLoad(tempOperator)
+                    previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "ACC2":
+                  pastJumpName = "jPASTFOR" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  tempOperator = "TEMP" + str(tempNumber)
+                  tempNumber += 1
+                  result[0][2].convertToACC2DLoad(tempOperator)
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("ALB ICB", [0, counterIdentifier[0], counterIdentifier[0]], None))
                   previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
                   previousLine = previousLine.getLastLine()
                   previousLine.getLastLine().addName(pastJumpName)
@@ -2359,6 +2560,8 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                   previousLine = previousLine.getLastLine()
                   previousLine.getLastLine().addName(pastJumpName)
                   previousConditional.setNextLineFalse(previousLine)
+                else:
+                  raise Exception("Unaccounted type " + result[0][1] + " in " + tree[i].cleanPrint())
               else:
                 raise Exception("Invalid condition for for in: " + tree[i].cleanPrint())
           
@@ -2404,13 +2607,53 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                   previousLine = previousLine.getLastLine()
                   previousLine.getLastLine().addName(pastJumpName)
                   previousConditional.setNextLineFalse(previousLine)
-                  
                 elif result[0][1] == "IN":
                   pastJumpName = "jPASTTWHILE" + str(jumpNumber)
                   jumpNumber += 1
                   previousConditionalName = pastJumpName
                   previousLine.setLastLine(CodeLine("LDI", [0, "TEMP0"], None))
                   previousLine.setLastLine(CodeLine("ANB INB", [0, "TEMP0"], None))
+                  previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                  previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "ACC":
+                  pastJumpName = "jPASTTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  previousConditional = None
+                  if result[0][2] == previousLine.getLastLine():
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                  else:
+                    tempOperator = "TEMP" + str(tempNumber)
+                    tempNumber += 1
+                    result[0][2].convertToACCDLoad(tempOperator)
+                    previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
+                    previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
+                    previousLine.setLastLine(previousConditional)
+                  i += 1
+                  temp = convertCodeIntoPartial(tree[i], previousLine, fullScope, number=jumpNumber)
+                  previousLine = temp[1]
+                  jumpNumber = temp[2]
+                  previousLine.setLastLine(CodeLine("JMP", [startLoopName], None))
+                  previousLine = previousLine.getLastLine()
+                  previousLine.getLastLine().addName(pastJumpName)
+                  previousConditional.setNextLineFalse(previousLine)
+                elif result[0][1] == "ACC2":
+                  pastJumpName = "jPASTTWHILE" + str(jumpNumber)
+                  jumpNumber += 1
+                  previousConditionalName = pastJumpName
+                  tempOperator = "TEMP" + str(tempNumber)
+                  tempNumber += 1
+                  result[0][2].convertToACC2DLoad(tempOperator)
+                  previousLine.setLastLine(CodeLine("ANB INB", [0, tempOperator], None))
                   previousConditional = ConditionalLine("JPF EQL", [pastJumpName], None, None)
                   previousLine.setLastLine(previousConditional)
                   i += 1
@@ -2477,6 +2720,8 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
                   previousLine = previousLine.getLastLine()
                   previousLine.getLastLine().addName(pastJumpName)
                   previousConditional.setNextLineFalse(previousLine)
+                else:
+                  raise Exception("Unaccounted type " + result[0][1] + " in " + tree[i].cleanPrint())
             
           #PUSH POP
           elif tree[i].operator[0] in ["pop", "push"]:
@@ -2505,8 +2750,11 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
     
     handlingIfFunc()
     if functionHeader != None:
-      pass
+      previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
+      previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
     for i in functionBlock:
+      if debug:
+        print(i[0][0])
       previousLine.getLastLine().addName(i[0][0])
       temp = convertCodeIntoPartial(i[1], previousLine, fullScope, number = jumpNumber, functionHeader = i[0][0])
       previousLine = temp[1]
@@ -2557,8 +2805,6 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
     
     #OPERATOR
     if tree.operator[1] == "OPERATOR":
-      leftOperand = []
-      rightOperand = []
       
       tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
       leftOperand = tempLeft[2]
@@ -2583,6 +2829,18 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
           previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], resultOperand], None))
           leftOperand[i][0] = resultOperand
           leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          leftOperand[i][2].convertToACCDLoad(resultOperand)
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          leftOperand[i][2].convertToACC2DLoad(resultOperand)
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
         
       tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
       rightOperand = tempRight[2]
@@ -2605,6 +2863,18 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
           resultOperand = "TEMP" + str(number)
           number += 1
           previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACCDLoad(resultOperand)
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACC2DLoad(resultOperand)
           rightOperand[i][0] = resultOperand
           rightOperand[i][1] = "DIR"
         
@@ -2637,7 +2907,7 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
                 raise Exception("Missing case in: " + tree.cleanPrint())
             elif rightOperand[i][1] == "DIR":
               if tree.operator[0] != "%":
-                assemblyOperator = "ALB"
+                assemblyOperator = "ANB"
                 if tree.operator[0] == "+":
                   assemblyOperator += " ADD"
                 elif tree.operator[0] == "-":
@@ -2658,24 +2928,19 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
                   assemblyOperator += " XOR"
                 else:
                   raise Exception("Missing case in: " + tree.cleanPrint())
-                resultOperand = "TEMP" + str(number)
-                number += 1
-                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
-                result.append([resultOperand, "DIR"])
+                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
+                result.append(["", "ACC", previousLine.getLastLine()])
               else:
                 assemblyOperator = "ANB DVA"
-                resultOperand = "TEMP" + str(number)
-                number += 1
                 previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
-                previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
-                result.append([resultOperand, "DIR"])
+                result.append(["", "ACC2", previousLine.getLastLine()])
             else:
               raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
             pass
           elif leftOperand[i][1] == "DIR":
             if rightOperand[i][1] == "CONST":
               if tree.operator[0] != "%":
-                assemblyOperator = "ALB"
+                assemblyOperator = "ANB"
                 if tree.operator[0] == "+":
                   assemblyOperator += " ADD"
                 elif tree.operator[0] == "-":
@@ -2696,20 +2961,15 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
                   assemblyOperator += " XOR"
                 else:
                   raise Exception("Missing case in: " + tree.cleanPrint())
-                resultOperand = "TEMP" + str(number)
-                number += 1
-                previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0], resultOperand], None))
-                result.append([resultOperand, "DIR"])
+                previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0]], None))
+                result.append(["", "ACC", previousLine.getLastLine()])
               else:
                 assemblyOperator = "ANB DVB"
-                resultOperand = "TEMP" + str(number)
-                number += 1
                 previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0]], None))
-                previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
-                result.append([resultOperand, "DIR"])
+                result.append(["", "ACC2", previousLine.getLastLine()])
             elif rightOperand[i][1] == "DIR":
               if tree.operator[0] != "%":
-                assemblyOperator = "ALD"
+                assemblyOperator = "AND"
                 if tree.operator[0] == "+":
                   assemblyOperator += " ADD"
                 elif tree.operator[0] == "-":
@@ -2732,17 +2992,12 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
                   assemblyOperator += " XOR"
                 else:
                   raise Exception("Missing case in: " + tree.cleanPrint())
-                resultOperand = "TEMP" + str(number)
-                number += 1
-                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
-                result.append([resultOperand, "DIR"])
+                previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
+                result.append(["", "ACC", previousLine.getLastLine()])
               else:
                 assemblyOperator = "AND DVA"
-                resultOperand = "TEMP" + str(number)
-                number += 1
                 previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0]], None))
-                previousLine.setLastLine(CodeLine("LDD", ["ACC2", resultOperand], None))
-                result.append([resultOperand, "DIR"])
+                result.append(["", "ACC2", previousLine.getLastLine()])
             else:
               raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
           else:
@@ -2754,8 +3009,6 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
     
     #BOOLEAN_OPERATOR
     elif tree.operator[1] == "BOOLEAN_OPERATOR":
-      leftOperand = []
-      rightOperand = []
       
       tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
       leftOperand = tempLeft[2]
@@ -2780,6 +3033,18 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
           previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], resultOperand], None))
           leftOperand[i][0] = resultOperand
           leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          leftOperand[i][2].convertToACCDLoad(resultOperand)
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          leftOperand[i][2].convertToACC2DLoad(resultOperand)
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
         
       tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
       rightOperand = tempRight[2]
@@ -2802,6 +3067,18 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
           resultOperand = "TEMP" + str(number)
           number += 1
           previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACCDLoad(resultOperand)
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACC2DLoad(resultOperand)
           rightOperand[i][0] = resultOperand
           rightOperand[i][1] = "DIR"
       
@@ -2843,8 +3120,8 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
               resultOperand = "TEMP" + str(number)
               number += 1
               previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
-              previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
-              result.append([resultOperand, "DIR"])
+              previousLine.setLastLine(CodeLine("ANB AND", [1, resultOperand], None))
+              result.append(["", "ACC", previousLine.getLastLine()])
             else:
               raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
             pass
@@ -2868,8 +3145,8 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
               resultOperand = "TEMP" + str(number)
               number += 1
               previousLine.setLastLine(CodeLine(assemblyOperator, [rightOperand[i][0], leftOperand[i][0], resultOperand], None))
-              previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
-              result.append([resultOperand, "DIR"])
+              previousLine.setLastLine(CodeLine("ANB AND", [1, resultOperand], None))
+              result.append(["", "ACC", previousLine.getLastLine()])
             elif rightOperand[i][1] == "DIR":
               assemblyOperator = "ALD"
               if tree.operator[0] == "and":
@@ -2889,8 +3166,8 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
               resultOperand = "TEMP" + str(number)
               number += 1
               previousLine.setLastLine(CodeLine(assemblyOperator, [leftOperand[i][0], rightOperand[i][0], resultOperand], None))
-              previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
-              result.append([resultOperand, "DIR"])
+              previousLine.setLastLine(CodeLine("ANB AND", [1, resultOperand], None))
+              result.append(["", "ACC", previousLine.getLastLine()])
             else:
               raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
           else:
@@ -2903,7 +3180,6 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
     #NEGATOR
     elif tree.operator[1] == "NEGATOR":
       if tree.operator[0] == "not":
-        rightOperand = []
         
         tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
         rightOperand = tempRight[2]
@@ -2928,22 +3204,33 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
             rightOperand[i][0] = resultOperand
             rightOperand[i][1] = "DIR"
-          rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACCDLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC2":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACC2DLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+            
           if rightOperand[i][1] == "CONST":
             result.append([(rightOperand[i][0] ^ 0xffff) & 1, "CONST"])
           elif rightOperand[i][1] == "DIR":
             resultOperand = "TEMP" + str(number)
             number += 1
             previousLine.setLastLine(CodeLine("ALB NTB", [0, rightOperand[i][0], resultOperand], None))
-            previousLine.setLastLine(CodeLine("ALB AND", [1, resultOperand, resultOperand], None))
-            result.append([resultOperand, "DIR"])
+            previousLine.setLastLine(CodeLine("ANB AND", [1, resultOperand, resultOperand], None))
+            result.append(["", "ACC", previousLine.getLastLine()])
           else:
             raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
         
         return previousLine, previousLine.getLastLine(), result, number, jumpNumber
           
       else:
-        rightOperand = []
         
         tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
         rightOperand = tempRight[2]
@@ -2968,23 +3255,36 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
             rightOperand[i][0] = resultOperand
             rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACCDLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC2":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACC2DLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+            
           if rightOperand[i][1] == "CONST":
             if tree.operator[0] == "!":
               result.append([(rightOperand[i][0] ^ 0xffff), "CONST"])
             elif tree.operator[0] == "-":
               result.append([-rightOperand[i][0], "CONST"])
             else:
-              raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+              raise Exception("Invalid operator " + tree.operator[0] + " in: " + tree.cleanPrint())
           elif rightOperand[i][1] == "DIR":
-            resultOperand = "TEMP" + str(number)
-            number += 1
-            assemblyOperator = "ALB"
+            assemblyOperator = "ANB"
             if tree.operator[0] == "!":
               assemblyOperator += " NTB"
             elif tree.operator[0] == "-":
               assemblyOperator += " NGB"
-            previousLine.setLastLine(CodeLine(assemblyOperator, [0, rightOperand[i][0], resultOperand], None))
-            result.append([resultOperand, "DIR"])
+            else:
+              raise Exception("Invalid operator " + tree.operator[0] + " in: " + tree.cleanPrint())
+            previousLine.setLastLine(CodeLine(assemblyOperator, [0, rightOperand[i][0]], None))
+            result.append(["", "ACC", previousLine.getLastLine()])
           else:
             raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
             
@@ -2993,8 +3293,6 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
     
     #COMPARATOR
     elif tree.operator[1] == "COMPARATOR":
-      leftOperand = []
-      rightOperand = []
       
       tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
       leftOperand = tempLeft[2]
@@ -3002,23 +3300,35 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
       jumpNumber = tempLeft[4]
       
       for i in range(len(leftOperand)):
-        if leftOperand[0][1] == "POP":
+        if leftOperand[i][1] == "POP":
           replaceOperand = "TEMP" + str(number)
           number += 1
           previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
-          leftOperand[0][0] = replaceOperand
-          leftOperand[0][1] = "DIR"
-        elif leftOperand[0][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          leftOperand[i][0] = replaceOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
           temp = convertFlagIntoPartial(previousLine, leftOperand[i][1], number)
-          leftOperand[0][0] = temp[1]
+          leftOperand[i][0] = temp[1]
           number = temp[2]
-          leftOperand[0][1] = "DIR"
-        elif leftOperand[0][1] == "IN":
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "IN":
           resultOperand = "TEMP" + str(number)
           number += 1
-          previousLine.setLastLine(CodeLine("LDI", [leftOperand[0][0], resultOperand], None))
-          leftOperand[0][0] = resultOperand
-          leftOperand[0][1] = "DIR"
+          previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], resultOperand], None))
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          leftOperand[i][2].convertToACCDLoad(resultOperand)
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
+        elif leftOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          leftOperand[i][2].convertToACC2DLoad(resultOperand)
+          leftOperand[i][0] = resultOperand
+          leftOperand[i][1] = "DIR"
         
       tempRight = convertIntoPartial(previousLine, tree.right, fullScope, number, jumpNumber)
       rightOperand = tempRight[2]
@@ -3026,23 +3336,35 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
       jumpNumber = tempRight[4]
       
       for i in range(len(rightOperand)):
-        if rightOperand[0][1] == "POP":
+        if rightOperand[i][1] == "POP":
           replaceOperand = "TEMP" + str(number)
           number += 1
           previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
-          rightOperand[0][0] = replaceOperand
-          rightOperand[0][1] = "DIR"
-        elif rightOperand[0][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
-          temp = convertFlagIntoPartial(previousLine, rightOperand[0][1], number)
-          rightOperand[0][0] = temp[1]
+          rightOperand[i][0] = replaceOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+          rightOperand[i][0] = temp[1]
           number = temp[2]
-          rightOperand[0][1] = "DIR"
-        elif rightOperand[0][1] == "IN":
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "IN":
           resultOperand = "TEMP" + str(number)
           number += 1
-          previousLine.setLastLine(CodeLine("LDI", [rightOperand[0][0], resultOperand], None))
-          rightOperand[0][0] = resultOperand
-          rightOperand[0][1] = "DIR"
+          previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACCDLoad(resultOperand)
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACC2DLoad(resultOperand)
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
       
       result = []
       if len(leftOperand) == 1 and len(rightOperand) == 1:
@@ -3172,8 +3494,22 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             rightOperand[i][0] = temp[1]
             number = temp[2]
             rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACCDLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC2":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACC2DLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+            
         if case == 2:
           previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
+          
         for i in range(len(rightOperand)-1, -1, -1):
           if rightOperand[i][1] == "CONST":
             previousLine.setLastLine(CodeLine("PSV", [rightOperand[i][0]], None))
@@ -3186,6 +3522,7 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             result.append(["", "POP"])
           else:
             raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
+            
         if case == 2:
           previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
         
@@ -3221,6 +3558,37 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
       number = tempRight[3]
       jumpNumber = tempRight[4]
       
+      for i in range(len(rightOperand)):
+        if rightOperand[i][1] == "POP":
+          replaceOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("PPD", [replaceOperand], None))
+          rightOperand[i][0] = replaceOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] in ["FLAG0", "FLAG1", "FLAG2", "NFLAG2"]:
+          temp = convertFlagIntoPartial(previousLine, rightOperand[i][1], number)
+          rightOperand[i][0] = temp[1]
+          number = temp[2]
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "IN":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACCDLoad(resultOperand)
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+        elif rightOperand[i][1] == "ACC2":
+          resultOperand = "TEMP" + str(number)
+          number += 1
+          rightOperand[i][2].convertToACC2DLoad(resultOperand)
+          rightOperand[i][0] = resultOperand
+          rightOperand[i][1] = "DIR"
+      
       leftOperand = []
       
       tempLeft = convertIntoPartial(previousLine, tree.left, fullScope, number, jumpNumber)
@@ -3229,12 +3597,6 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
       jumpNumber = tempLeft[4]
       
       if len(rightOperand) == 1:
-        if rightOperand[0][1] == "IN":
-          resultOperand = "TEMP" + str(number)
-          number += 1
-          previousLine.setLastLine(CodeLine("LDI", [rightOperand[0][0], resultOperand], None))
-          rightOperand[0][0] = resultOperand
-          rightOperand[0][1] = "DIR"
         leftOperandPop = False
         leftOperandAllPop = True
         for i in leftOperand:
@@ -3255,7 +3617,7 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             else:
               resultOperand = "TEMP" + str(number)
               number += 1
-              raise Exception("Incomplete compiler")
+              raise Exception("Unfinished feature")
               previousLine.setLastLine(CodeLine("ALB ADD", [leftOperand[0][0], rightOperand[0][0], resultOperand], None))
               return previousLine, previousLine.getLastLine(), [[resultOperand, "DIR"]], number, jumpNumber
         elif not leftOperandPop and not leftOperandAllPop:
@@ -3340,6 +3702,10 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
               previousLine.setLastLine(CodeLine("LDD", [rightOperand[i][0], leftOperand[i][0]], None))
             elif rightOperand[i][1] == "IN":
               previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "ACC":
+              rightOperand[i][2].convertToACCDLoad(leftOperand[i][0])
+            elif rightOperand[i][1] == "ACC2":
+              rightOperand[i][2].convertToACC2DLoad(leftOperand[i][0])
             else:
               raise Exception("Invalid type " + rightOperand[i] + " around = in: " + tree.cleanPrint())
           elif leftOperand[i][1] == "IN":
@@ -3355,6 +3721,10 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
               previousLine.setLastLine(CodeLine("LID", [rightOperand[i][0], leftOperand[i][0]], None))
             elif rightOperand[i][1] == "IN":
               previousLine.setLastLine(CodeLine("LII", [rightOperand[i][0], leftOperand[i][0]], None))
+            elif rightOperand[i][1] == "ACC":
+              rightOperand[i][2].convertToACCILoad(leftOperand[i][0])
+            elif rightOperand[i][1] == "ACC2":
+              rightOperand[i][2].convertToACC2ILoad(leftOperand[i][0])
             else:
               raise Exception("Invalid type " + rightOperand[i] + " around = in: " + tree.cleanPrint())
           else:
@@ -3402,7 +3772,7 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
         rightOperand = tempRight[2]
         number = tempRight[3]
         jumpNumber = tempRight[4]
-        
+      
         for i in range(len(rightOperand)):
           if rightOperand[i][1] == "POP":
             replaceOperand = "TEMP" + str(number)
@@ -3419,6 +3789,18 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             resultOperand = "TEMP" + str(number)
             number += 1
             previousLine.setLastLine(CodeLine("LDI", [rightOperand[i][0], resultOperand], None))
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACCDLoad(resultOperand)
+            rightOperand[i][0] = resultOperand
+            rightOperand[i][1] = "DIR"
+          elif rightOperand[i][1] == "ACC2":
+            resultOperand = "TEMP" + str(number)
+            number += 1
+            rightOperand[i][2].convertToACC2DLoad(resultOperand)
             rightOperand[i][0] = resultOperand
             rightOperand[i][1] = "DIR"
           
@@ -4018,8 +4400,8 @@ def compiler():
   controlGraph = convertCodeIntoPartial(tree, CodeLine("", [], None), dictionaryScope)[0]
   
   if debug:
-    print("----------------------CONTROL GRAPH----------------------")
-    print(controlGraph.printAllCode())
+    #print("----------------------CONTROL GRAPH----------------------")
+    #print(controlGraph.printAllCode())
     pass
   
   if debug:
@@ -4084,8 +4466,8 @@ def compiler():
     
   finalAssembly = assemblySymbolTable + controlGraph.printAllCode()
   if debug:
-    print("----------------------FINAL ASSEMBLY----------------------")
-    print(finalAssembly)
+    #print("----------------------FINAL ASSEMBLY----------------------")
+    #print(finalAssembly)
     pass
   
   if debug:

@@ -1,61 +1,63 @@
-%STRING45 = 1000
-%STRING46 = 1034
-%CHAR48 = 1044
-%CHAR47 = 1045
-%STRING21 = 1046
-%STRING22 = 1078
-%STRING23 = 108f
-%STRING24 = 10a6
-%STRING25 = 10c1
-%INT27 = 10c9
-%INT28 = 10ca
-%INT29 = 10cb
-%INT42 = 10cc
-%STRING30 = 10cd
-%STRING31 = 10d2
-%STRING32 = 10d7
-%CHAR44 = 10dc
-%CHAR43 = 10dd
-%CHAR41 = 10de
-%INT38 = 10df
-%INT39 = 10e0
-%INT40 = 10e1
-%CHAR37 = 10e2
-%INT34 = 10e3
-%INT35 = 10e4
-%INT36 = 10e5
-%CHAR33 = 10e6
-%CHAR26 = 10e7
-%INT17 = 10e8
-%STRING15 = 10e9
-%CHAR18 = 10ee
-%INT19 = 10ef
-%INT11 = 10f0
-%INT14 = 10f1
-%STRING13 = 10f2
-%INT8 = 10f7
-%ARRAY9 = 10f8
-%ARRAY10 = 10f9
-%INT5 = 10fa
-%ARRAY6 = 10fb
-%STRING1 = 10fc
-%CHAR2 = 1122
-%COUNTER0 = 1123
-%COUNTER17 = 1124
-%COUNTER21 = 1125
-%COUNTER32 = 1126
-%COUNTER35 = 1127
-%COUNTER39 = 1128
-%COUNTER53 = 1129
-%COUNTER69 = 112a
-%COUNTER84 = 112b
-%COUNTER88 = 112c
-%TEMP0 = 112d
-%TEMP1 = 112e
-%TEMP2 = 112f
+%STRING48 = 1000
+%STRING49 = 1034
+%CHAR51 = 1044
+%CHAR50 = 1045
+%STRING24 = 1046
+%STRING25 = 1078
+%STRING26 = 108f
+%STRING27 = 10a6
+%STRING28 = 10c1
+%INT30 = 10c9
+%INT31 = 10ca
+%INT32 = 10cb
+%INT45 = 10cc
+%STRING33 = 10cd
+%STRING34 = 10d2
+%STRING35 = 10d7
+%CHAR47 = 10dc
+%CHAR46 = 10dd
+%CHAR44 = 10de
+%INT41 = 10df
+%INT42 = 10e0
+%INT43 = 10e1
+%CHAR40 = 10e2
+%INT37 = 10e3
+%INT38 = 10e4
+%INT39 = 10e5
+%CHAR36 = 10e6
+%CHAR29 = 10e7
+%INT20 = 10e8
+%STRING18 = 10e9
+%CHAR21 = 10ee
+%INT22 = 10ef
+%INT14 = 10f0
+%INT17 = 10f1
+%STRING16 = 10f2
+%INT12 = 10f7
+%ARRAY13 = 10f8
+%INT8 = 10f9
+%ARRAY9 = 10fa
+%ARRAY10 = 10fb
+%INT5 = 10fc
+%ARRAY6 = 10fd
+%STRING1 = 10fe
+%CHAR2 = 1124
+%COUNTER0 = 1125
+%COUNTER19 = 1126
+%COUNTER23 = 1127
+%COUNTER36 = 1128
+%COUNTER39 = 1129
+%COUNTER43 = 112a
+%COUNTER57 = 112b
+%COUNTER73 = 112c
+%COUNTER88 = 112d
+%COUNTER92 = 112e
+%TEMP0 = 112f
 %RETURNA = 1130
-%TEMP3 = 1131
-%TEMP4 = 1132
+%TEMP1 = 1131
+%TEMP2 = 1132
+%TEMP3 = 1133
+%TEMP4 = 1134
 
 TTY ['CHAR', 1, [], []]
 KYBD ['CHAR', 1, [], []]
@@ -134,48 +136,51 @@ SPR30CLR ['INT', 1, [], []]
 SPR30COORD ['INT', 1, [], []]
 SPR31CLR ['INT', 1, [], []]
 SPR31COORD ['INT', 1, [], []]
-STRING45 ['STRING', 52, [], []]
-STRING46 ['STRING', 16, [], []]
+STRING48 ['STRING', 52, [], []]
+STRING49 ['STRING', 16, [], []]
 fNONE0 ['', 0, [], []]
 fNONE3 ['', 0, [], []]
 fNONE4 ['', 0, [], []]
 fNONE7 ['', 0, [], []]
-fSTRING12 ['STRING', 5, [['INT', 0]], ['INT11']]
-fINT16 ['INT', 1, [['STRING', 5]], ['STRING15']]
-fNONE20 ['', 0, [], []]
-CHAR48 ['CHAR', 1, [], []]
+fNONE11 ['', 0, [], []]
+fSTRING15 ['STRING', 5, [['INT', 0]], ['INT14']]
+fINT19 ['INT', 1, [['STRING', 5]], ['STRING18']]
+fNONE23 ['', 0, [], []]
+CHAR51 ['CHAR', 1, [], []]
+CHAR50 ['CHAR', 1, [], []]
+STRING24 ['STRING', 50, [], []]
+STRING25 ['STRING', 23, [], []]
+STRING26 ['STRING', 23, [], []]
+STRING27 ['STRING', 27, [], []]
+STRING28 ['STRING', 8, [], []]
+INT30 ['INT', 1, [], []]
+INT31 ['INT', 1, [], []]
+INT32 ['INT', 1, [], []]
+INT45 ['INT', 1, [], []]
+STRING33 ['STRING', 5, [], []]
+STRING34 ['STRING', 5, [], []]
+STRING35 ['STRING', 5, [], []]
 CHAR47 ['CHAR', 1, [], []]
-STRING21 ['STRING', 50, [], []]
-STRING22 ['STRING', 23, [], []]
-STRING23 ['STRING', 23, [], []]
-STRING24 ['STRING', 27, [], []]
-STRING25 ['STRING', 8, [], []]
-INT27 ['INT', 1, [], []]
-INT28 ['INT', 1, [], []]
-INT29 ['INT', 1, [], []]
-INT42 ['INT', 1, [], []]
-STRING30 ['STRING', 5, [], []]
-STRING31 ['STRING', 5, [], []]
-STRING32 ['STRING', 5, [], []]
+CHAR46 ['CHAR', 1, [], []]
 CHAR44 ['CHAR', 1, [], []]
-CHAR43 ['CHAR', 1, [], []]
-CHAR41 ['CHAR', 1, [], []]
+INT41 ['INT', 1, [], []]
+INT42 ['INT', 1, [], []]
+INT43 ['INT', 1, [], []]
+CHAR40 ['CHAR', 1, [], []]
+INT37 ['INT', 1, [], []]
 INT38 ['INT', 1, [], []]
 INT39 ['INT', 1, [], []]
-INT40 ['INT', 1, [], []]
-CHAR37 ['CHAR', 1, [], []]
-INT34 ['INT', 1, [], []]
-INT35 ['INT', 1, [], []]
-INT36 ['INT', 1, [], []]
-CHAR33 ['CHAR', 1, [], []]
-CHAR26 ['CHAR', 1, [], []]
-INT17 ['INT', 1, [], []]
-STRING15 ['STRING', 5, [], []]
-CHAR18 ['CHAR', 1, [], []]
-INT19 ['INT', 1, [], []]
-INT11 ['INT', 1, [], []]
+CHAR36 ['CHAR', 1, [], []]
+CHAR29 ['CHAR', 1, [], []]
+INT20 ['INT', 1, [], []]
+STRING18 ['STRING', 5, [], []]
+CHAR21 ['CHAR', 1, [], []]
+INT22 ['INT', 1, [], []]
 INT14 ['INT', 1, [], []]
-STRING13 ['STRING', 5, [], []]
+INT17 ['INT', 1, [], []]
+STRING16 ['STRING', 5, [], []]
+INT12 ['INT', 1, [], []]
+ARRAY13 ['ARRAY', 1, [], []]
 INT8 ['INT', 1, [], []]
 ARRAY9 ['ARRAY', 1, [], []]
 ARRAY10 ['ARRAY', 1, [], []]
@@ -184,12 +189,12 @@ ARRAY6 ['ARRAY', 1, [], []]
 STRING1 ['STRING', 38, [], []]
 CHAR2 ['CHAR', 1, [], []]
 COUNTER0 ['INT', 1, [], []]
-COUNTER17 ['INT', 1, [], []]
-COUNTER21 ['INT', 1, [], []]
-COUNTER32 ['INT', 1, [], []]
-COUNTER35 ['INT', 1, [], []]
+COUNTER19 ['INT', 1, [], []]
+COUNTER23 ['INT', 1, [], []]
+COUNTER36 ['INT', 1, [], []]
 COUNTER39 ['INT', 1, [], []]
-COUNTER53 ['INT', 1, [], []]
-COUNTER69 ['INT', 1, [], []]
-COUNTER84 ['INT', 1, [], []]
+COUNTER43 ['INT', 1, [], []]
+COUNTER57 ['INT', 1, [], []]
+COUNTER73 ['INT', 1, [], []]
 COUNTER88 ['INT', 1, [], []]
+COUNTER92 ['INT', 1, [], []]
