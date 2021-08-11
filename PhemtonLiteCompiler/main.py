@@ -2,7 +2,7 @@
 #The Assembler for the Femto-4 found on CircuitVerse.
 #Refer to Developer Guide.txt if you want to understand what this is for. 
 
-debug = True
+debug = False
 if debug:
   print("Running")
 
