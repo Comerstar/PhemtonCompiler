@@ -34,6 +34,36 @@ def copyKeyboardIndirectTest () {
   }
 }
 
+def copyKeyboardIndirectTest2 () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num1;
+    array[1] num2;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num1[0] = keyboard;
+      num2[i] = num1[i];
+      TTY = num2[0];
+    }
+  }
+}
+
+def copyKeyboardIndirectTest3 () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num[i] = keyboard + 0;
+      TTY = num[0];
+    }
+  }
+}
+
 #Converts an integer into a string
 string[5] def intToStr (int number) {
   string[5] result = "00000";
@@ -206,23 +236,29 @@ for i in opening {
   TTY = i;
 }
 while true {
-  int keyboardValue = 0;
-  while keyboardValue == 0 {
+  keyboard = 0;
+  keyboard = 1;
+  while keyboard == 0 {
     keyboard = 1;
-    keyboardValue = keyboard;
     pause;
   }
-  if keyboardValue == 0x0031 {
+  if keyboard == 0x0031 {
     printHelloWorld();
   }
-  elif keyboardValue == 0x0032 {
+  elif keyboard == 0x0032 {
     copyKeyboard();
   }
-  elif keyboardValue == 0x0033 {
+  elif keyboard == 0x0033 {
     operateNumbers();
   }
-  elif keyboardValue == 0x0034 {
+  elif keyboard == 0x0034 {
     copyKeyboardIndirectTest();
+  }
+  elif keyboard == 0x0035 {
+    copyKeyboardIndirectTest2();
+  }
+  elif keyboard == 0x0036 {
+    copyKeyboardIndirectTest3();
   }
   else {
     for i in invalidInput {

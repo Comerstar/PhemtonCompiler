@@ -4274,8 +4274,7 @@ def compiler():
     elif tokenTypeIdentifier.state != "ERROR" and tokenTypeIdentifier.state != "STR" and tokenTypeIdentifier.state != "CHR":
       tokensTyped.append([i, tokenTypeIdentifier.state])
     else:
-      print("ERROR: Unidentifiable token")
-      print(i)
+      raise Exception("Unidentifiable token:", i)
       return
     tokenTypeIdentifier.setState("S")
     
