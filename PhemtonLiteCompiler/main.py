@@ -714,7 +714,7 @@ def constructTree(line):
   #keyOperatorEnd = -1
   keyOperatorType = "NONE"
   operatorType = "NONE"
-  priorityArray = ["KEYWORD", "ASSIGNER", "MODIFIER", "TYPE", "ARRAY_TYPE", "BOOLEAN_OPERATOR", "COMPARATOR", "SUBSCRIPT", "OPERATOR", "NEGATOR", "SLICE", "NUMBER", "CHAR", "STRING", "IDENTIFIER", "EXPRESSION", "ARRAY", "PARAMETERS", "NONE"]
+  priorityArray = ["KEYWORD", "ASSIGNER", "MODIFIER", "TYPE", "ARRAY_TYPE", "BOOLEAN_OPERATOR", "COMPARATOR", "OPERATOR", "NEGATOR", "SUBSCRIPT", "SLICE", "NUMBER", "CHAR", "STRING", "IDENTIFIER", "EXPRESSION", "ARRAY", "PARAMETERS", "NONE"]
   #operatorPriorityArray = [["&", "|", "^", ">>", "<<"], ["+", "-"], ["*", "/", "%"], "NONE"]
   operatorPriorityDictionary = {"&": 1, "|": 1, "^": 1, ">>": 1, "<<": 1, "+": 2, "-": 2, "*": 3, "/":3, "%":3, "NONE": 4}
   if len(line) == 0:
@@ -756,12 +756,6 @@ def constructTree(line):
       elif line[i][1] == "COMPARATOR" and priorityArray.index(keyOperatorType) > priorityArray.index("COMPARATOR"):
         keyOperator = i
         keyOperatorType = "COMPARATOR"
-      elif line[i][1] == "SUBSCRIPT" and priorityArray.index(keyOperatorType) > priorityArray.index("SUBSCRIPT"):
-        keyOperator = i
-        keyOperatorType = "SUBSCRIPT"
-      elif line[i][1] == "ARRAY_TYPE" and priorityArray.index(keyOperatorType) > priorityArray.index("ARRAY_TYPE"):
-        keyOperator = i
-        keyOperatorType = "ARRAY_TYPE"
       elif line[i][1] == "OPERATOR" and priorityArray.index(keyOperatorType) >= priorityArray.index("OPERATOR"):
         if operatorPriorityDictionary[operatorType] >= operatorPriorityDictionary[line[i][0]]:
           keyOperator = i
@@ -770,6 +764,12 @@ def constructTree(line):
       elif line[i][1] == "NEGATOR" and priorityArray.index(keyOperatorType) > priorityArray.index("NEGATOR"):
         keyOperator = i
         keyOperatorType = "NEGATOR"
+      elif line[i][1] == "SUBSCRIPT" and priorityArray.index(keyOperatorType) > priorityArray.index("SUBSCRIPT"):
+        keyOperator = i
+        keyOperatorType = "SUBSCRIPT"
+      elif line[i][1] == "ARRAY_TYPE" and priorityArray.index(keyOperatorType) > priorityArray.index("ARRAY_TYPE"):
+        keyOperator = i
+        keyOperatorType = "ARRAY_TYPE"
       elif line[i][1] == "SLICE" and priorityArray.index(keyOperatorType) > priorityArray.index("SLICE"):
         keyOperator = i
         keyOperatorType = "SLICE"
@@ -1269,6 +1269,10 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
       elif not isinstance(tree.right, StatementTree):
         raise Exception("Invalid declaration in: " + tree.cleanPrint())
       elif tree.right.operator[1] != "SUBSCRIPT":
+        raise Exception("Invalid declaration in: " + tree.cleanPrint())
+      elif not isinstance(tree.right.left, list):
+        raise Exception("Invalid declaration in: " + tree.cleanPrint())
+      elif len(tree.right.left) != 2:
         raise Exception("Invalid declaration in: " + tree.cleanPrint())
       elif not varScope.variableInScope(tree.right.left[0]):
         #print(tree.operator)
@@ -3754,7 +3758,10 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
           if leftOperand[i][1] == "DIR":
             previousLine.setLastLine(CodeLine("ALB " + assemblyOperator, [0, leftOperand[i][0], leftOperand[i][0]], None))
           elif leftOperand[i][1] == "IN":
-            previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [0, leftOperand[i][0]], None))
+            tempOperand = "TEMP" + str(number)
+            number += 1
+            previousLine.setLastLine(CodeLine("LDI", [leftOperand[i][0], tempOperand], None))
+            previousLine.setLastLine(CodeLine("ANB " + assemblyOperator, [0, tempOperand], None))
             previousLine.setLastLine(CodeLine("LIA", [leftOperand[i][0]], None))
           
         return previousLine, previousLine.getLastLine(), [], number, jumpNumber

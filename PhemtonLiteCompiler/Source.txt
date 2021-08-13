@@ -170,6 +170,7 @@ def drawBoard () {
   sprite8coordinates = 0x1010;
   sprite9coordinates = 0x1010;
   sprite10colour = 0;
+  sprite10coordinates = 0xffff;
   sprite11colour = 0;
 }
 
@@ -223,11 +224,15 @@ while true {
   while winner == 0 {
     keyboard = 0;
     if playerTurn == 1 {
+      sprite10colour = 0xf801;
+      graphics;
       for i in player1Turn {
         TTY = i;
       }
     }
     elif playerTurn == 2 {
+      sprite10colour = 0x04bf;
+      graphics;
       for i in player2Turn {
         TTY = i;
       }
@@ -251,10 +256,14 @@ while true {
       if board[space] == 0 {
         validTurn = 1;
         board[space] = playerTurn;
+        sprite10colour = 0x7001;
+        graphics;
         if playerTurn == 1 {
           drawX();
         }
         elif playerTurn == 2 {
+          sprite10colour = 0x0151;
+          graphics;
           drawO();
         }
         winner = checkWinner();
@@ -264,7 +273,7 @@ while true {
           playerTurn = 1;
         }
       }
-      if turnNumber > 8 {
+      if turnNumber > 8 and winner == 0 {
         winner = 3;
       }
     }
@@ -272,16 +281,22 @@ while true {
   }
   TTY = 0;
   if winner == 1 {
+    sprite10colour = 0xf801;
+    graphics;
     for i in player1Win {
       TTY = i;
     }
   }
   elif winner == 2 {
+    sprite10colour = 0x04bf;
+    graphics;
     for i in player2Win {
       TTY = i;
     }
   }
   elif winner == 3 {
+    sprite10colour = 0x8c63;
+    graphics;
     for i in draw {
       TTY = i;
     }

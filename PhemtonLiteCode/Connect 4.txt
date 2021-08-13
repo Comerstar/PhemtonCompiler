@@ -1,0 +1,347 @@
+array[42] board;
+int winner;
+bool validInput;
+bool validMove;
+int column;
+int playerTurn;
+int turn;
+int move;
+int x;
+int y;
+int space;
+array[7] columnHeights;
+string[144] instruction = "Player 1 is red, and player 2 is yellow. Enter the number of the column you wish to play your piece in. The columns are numbered 1 2 3 4 5 6 7. ";
+string[12] redTurn = "Red's Turn. ";
+string[15] yellowTurn = "Yellow's Turn. ";
+string[10] redWin = "Red wins. ";
+string[13] yellowWin = "Yellow wins. ";
+string[6] draw = "Draw. ";
+string[49] endInstruction = "Enter something into the keyboard to play again. ";
+
+#Setup the screen before the game. 
+def setupScreen () {
+  #Clear the board
+  sprite0colour = 0x0001;
+  sprite0coordinates = 0x0f0f;
+  sprite1colour = 0xffff;
+  sprite1coordinates = 0x0f3f;
+  sprite2colour = 0x39cf;
+  sprite2coordinates = 0x1e4f;
+  sprite3colour = 0x0001;
+  sprite3coordinates = 0x1e55;
+  sprite4colour = 0x0001;
+  sprite4coordinates = 0x1e77;
+  sprite5colour = 0x0001;
+  sprite5coordinates = 0x1e99;
+  sprite6colour = 0x0001;
+  sprite6coordinates = 0x1ebb;
+  sprite7colour = 0x0001;
+  sprite7coordinates = 0x1edd;
+  sprite8colour = 0x0001;
+  sprite8coordinates = 0x1eff;
+  graphics;
+  sprite0colour = 0x0001;
+  sprite0coordinates = 0x224f;
+  sprite1colour = 0x0001;
+  sprite1coordinates = 0x444f;
+  sprite2colour = 0x0001;
+  sprite2coordinates = 0x664f;
+  sprite3coordinates = 0x884f;
+  sprite4coordinates = 0xaa4f;
+  sprite5coordinates = 0xcc4f;
+  sprite6coordinates = 0xee4f;
+  graphics;
+  #Setup counter colours whilst changing their coordinates to ensure that they cannot be seen. 
+  sprite0colour = 0x8801;
+  sprite0coordinates = 0x1010;
+  sprite1colour = 0xd841;
+  sprite1coordinates = 0x1010;
+  sprite2colour = 0xfe8b;
+  sprite2coordinates = 0x1010;
+  sprite3colour = 0xffdf;
+  sprite3coordinates = 0x1010;
+  sprite4colour = 0;
+  sprite4coordinates = 0x0f02;
+  sprite5colour = 0;
+  sprite6colour = 0;
+  sprite7colour = 0;
+  sprite8colour = 0;
+}
+
+#drawRedCounter
+def drawRed () {
+  x = column;
+  y = columnHeights[column];
+  sprite0coordinates = (((x << 1) + 1) << 0xc) | (((x << 1) + 2) << 0x8) | (((y << 1) + 4) << 0x4) | (((y << 1) + 5));
+  sprite1coordinates = (((x << 1) + 1) << 0xc) | (((x << 1) + 1) << 0x8) | (((y << 1) + 4) << 0x4) | (((y << 1) + 4));
+  graphics;
+}
+
+#drawYellowcounter
+def drawYellow () {
+  x = column;
+  y = columnHeights[column];
+  sprite2coordinates = (((x << 1) + 1) << 0xc) | (((x << 1) + 2) << 0x8) | (((y << 1) + 4) << 0x4) | (((y << 1) + 5));
+  sprite3coordinates = (((x << 1) + 1) << 0xc) | (((x << 1) + 1) << 0x8) | (((y << 1) + 4) << 0x4) | (((y << 1) + 4));
+  graphics;
+}
+
+int def checkWinner () {
+  #Check horizontal
+  x = column - 3;
+  y = columnHeights[column];
+  int run = 1;
+  int previousSpace = 0;
+  int currentSpace = 0;
+  for i in 0 to 7 {
+    if x + 3 > 2 and x < 7 {
+      currentSpace = board[x + y * 7];
+      if currentSpace == previousSpace {
+        run++;
+      }
+      else {
+        run = 1;
+      }
+      if run == 4 {
+        if currentSpace <> 0 {
+          return currentSpace;
+        }
+      }
+      previousSpace = currentSpace;
+    }
+    x++;
+  }
+
+  #Check vertical
+  x = column;
+  y = columnHeights[column] - 3;
+  run = 1;
+  previousSpace = 0;
+  currentSpace = 0;
+  for i in 0 to 7 {
+    if y + 3 > 2 and y < 6 {
+      currentSpace = board[x + y * 7];
+      if currentSpace == previousSpace {
+        run++;
+      }
+      else {
+        run = 1;
+      }
+      if run == 4 {
+        if currentSpace <> 0 {
+          return currentSpace;
+        }
+      }
+      previousSpace = currentSpace;
+    }
+    y++;
+  }
+
+  #Check RD diagonal
+  x = column - 3;
+  y = columnHeights[column] - 3;
+  run = 1;
+  previousSpace = 0;
+  currentSpace = 0;
+  for i in 0 to 7 {
+    if (x + 3 > 2 and x < 7) and (y + 3 > 2 and y < 6) {
+      currentSpace = board[x + y * 7];
+      if currentSpace == previousSpace {
+        run++;
+      }
+      else {
+        run = 1;
+      }
+      if run == 4 {
+        if currentSpace <> 0 {
+          return currentSpace;
+        }
+      }
+      previousSpace = currentSpace;
+    }
+    x++;
+    y++;
+  }
+
+  #Check RU diagonal
+  x = column - 3;
+  y = columnHeights[column] + 3;
+  run = 1;
+  previousSpace = 0;
+  currentSpace = 0;
+  for i in 0 to 7 {
+    if (x + 3 > 2 and x < 7) and (y + 3 > 2 and y < 6) {
+      currentSpace = board[x + y * 7];
+      if currentSpace == previousSpace {
+        run++;
+      }
+      else {
+        run = 1;
+      }
+      if run == 4 {
+        if currentSpace <> 0 {
+          return currentSpace;
+        }
+      }
+      previousSpace = currentSpace;
+    }
+    x++;
+    y--;
+  }
+  return 0;
+}
+
+mode = 0xc007;
+
+TTY = 0;
+for i in instruction {
+  TTY = i;
+}
+
+while true {
+  #Reset the board
+  board[0] = 0;
+  board[1] = 0;
+  board[2] = 0;
+  board[3] = 0;
+  board[4] = 0;
+  board[5] = 0;
+  board[6] = 0;
+  board[7] = 0;
+  board[8] = 0;
+  board[9] = 0;
+  board[10] = 0;
+  board[11] = 0;
+  board[12] = 0;
+  board[13] = 0;
+  board[14] = 0;
+  board[15] = 0;
+  board[16] = 0;
+  board[17] = 0;
+  board[18] = 0;
+  board[19] = 0;
+  board[20] = 0;
+  board[21] = 0;
+  board[22] = 0;
+  board[23] = 0;
+  board[24] = 0;
+  board[25] = 0;
+  board[26] = 0;
+  board[27] = 0;
+  board[28] = 0;
+  board[29] = 0;
+  board[30] = 0;
+  board[31] = 0;
+  board[32] = 0;
+  board[33] = 0;
+  board[34] = 0;
+  board[35] = 0;
+  board[36] = 0;
+  board[37] = 0;
+  board[38] = 0;
+  board[39] = 0;
+  board[40] = 0;
+  board[41] = 0;
+  columnHeights[0] = 5;
+  columnHeights[1] = 5;
+  columnHeights[2] = 5;
+  columnHeights[3] = 5;
+  columnHeights[4] = 5;
+  columnHeights[5] = 5;
+  columnHeights[6] = 5;
+  winner = 0;
+  playerTurn = 1;
+  turn = 0;
+  setupScreen();
+  while winner == 0 {
+    keyboard = 0;
+    int temp;
+    if playerTurn == 1 {
+      sprite4colour = 0xd841;
+      graphics;
+      for i in redTurn {
+        TTY = i;
+      }
+    }
+    elif playerTurn == 2 {
+      sprite4colour = 0xff4b;
+      graphics;
+      for i in yellowTurn {
+        TTY = i;
+      }
+    }
+    validMove = false;
+    while validMove == false {
+      validInput = false;
+      while validInput == false {
+        keyboard = 1;
+        while keyboard == 0 {
+          keyboard = 1;
+        }
+        if keyboard & 0x00f0 == 0x0030 {
+          move = keyboard & 0x000f;
+          if (move <> 0) and (move < 8) {
+            validInput = true;
+          }
+        }
+      }
+      column = move - 1;
+      temp = columnHeights[column];
+      if (temp + 1 > 0) and (temp < 6) {
+        validMove = true;
+      }
+    }
+    board[column + temp * 7] = playerTurn;
+    if playerTurn == 1 {
+      sprite4colour = 0x7001;
+      graphics;
+      drawRed();
+    }
+    elif playerTurn == 2 {
+      sprite4colour = 0x9c01;
+      graphics;
+      drawYellow();
+    }
+    winner = checkWinner();
+    #Update column height
+    columnHeights[column]--;
+    pause;
+    playerTurn %= 2;
+    playerTurn++;
+    turn ++;
+    #If board is filled, make game a draw
+    if turn >= 42 and winner == 0 {
+      winner = 3;
+    }
+    TTY = 0;
+  }
+  keyboard = 0;
+  if winner == 1 {
+    sprite4colour = 0xd841;
+    graphics;
+    for i in redWin {
+      TTY = i;
+    }
+  }
+  elif winner == 2 {
+    sprite4colour = 0xff4b;
+    graphics;
+    for i in yellowWin {
+      TTY = i;
+    }
+  }
+  elif winner == 3 {
+    sprite4colour = 0x39cf;
+    graphics;
+    for i in draw {
+      TTY = i;
+    }
+  }
+  for i in endInstruction {
+    TTY = i;
+  }
+  while keyboard == 0 {
+    keyboard = 1;
+  }
+  TTY = 0;
+}
