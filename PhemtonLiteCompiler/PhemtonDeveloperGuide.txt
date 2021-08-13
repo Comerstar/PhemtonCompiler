@@ -26,7 +26,7 @@ Femto-4 Developer Guide
 What is the Femto-4?
 """"""""""""""""""""
 The Femto-4 is a simulated console constructed in CircuitVerse. The latest version can be found here: 
-https://circuitverse.org/users/4699/projects/femto-4v2-3-computer
+https://circuitverse.org/users/4699/projects/femto-4v2-4-computer
 It is named in reference to the Pico-8. 
 If you have any questions, or you have written a cart and want me to see it/add it to the main branch, feel free to leave a comment on the project itself. 
 
@@ -48,13 +48,13 @@ This guide will cover how to use Phemton, the Femto-4's high level language. To 
 What is Phemton?
 """"""""""""""""
 Phemton is the Femto-4's high level language. There are three main planned versions:
-Phemton Lite (a1.0): Compile time variable assignment, making it less powerful but faster
+Phemton Lite (a1.1): Compile time variable assignment, making it less powerful but faster
 Phemton Full (WIP): Run time variable assignment, making it slower but more powerful
 Phemton Plus (WIP): Adds additional types long and floats
 
 In order to compile code, place the source code in Source.txt, and the compiled assembly will be loaded into Assembly.txt. The code then runs the assembler, to load the final machine code into MachineCode.txt. 
 
-Phemton Lite (a1.0)
+Phemton Lite (a1.1)
 """""""""""""""""""
 Features
 """"""""
@@ -208,7 +208,7 @@ graphics
 pop(<Identifier>)
 push(<Expression>)
 
-Whilst Phemton Lite requires type declarations, Phemton Lite is not particularly thorough with typing, treating characters and integers interchangeably, allowing operators to act on both. Arrays are arrays of integers, and strings are arrays of characters. Since variables are assigned during compile time, arrays must have a known length during compile time and therefore must have a given, constant length. Variable identifiers must not start with a digit, and can use upper and lower case letters, and _. Number consts can be in denary, hexadecimal, and binary. Hexadecimal consts start with 0x, and binary consts start with 0b. Phemton Plus will take more care between different types, particularly int/chars, longs, and floats. 
+Whilst Phemton Lite requires type declarations, Phemton Lite is not particularly thorough with typing, treating characters, integers, and booleans interchangeably, allowing operators to act on all three. Arrays are arrays of integers, and strings are arrays of characters. Since variables are assigned during compile time, arrays must have a known length during compile time and therefore must have a given, constant length. Variable identifiers must not start with a digit, and can use upper and lower case letters, and _. Number consts can be in denary, hexadecimal, and binary. Hexadecimal consts start with 0x, and binary consts start with 0b. Phemton Plus will take more care between different types, particularly int/chars, longs, and floats. 
 
 Phemton Lite assigns variables memory addresses at compile time, so all uniquely identified variables have a global address. This can result in strange behaviours particularly with function calls. In order to correctly perform recursion, all local variables must be pushed onto the stack, before the recursive call, since the recursive call will overwrite the previous local variables. 
 
@@ -218,7 +218,7 @@ For loops, while loops, and functions behave mostly as one would expect, with th
 The pause keyword corresponds directly to the PWS assembly instruction.
 The graphics keywords corresponds directly to the GRF assembly instruction.
 pop(<Identifier>) pops a value from the stack andd puts it in the identifier. 
-push(<Expression>) pushes the value of the expression onto the stack. 
+push(<Expression>) pushes the value of the expression onto the stack.
 
 Phemton Lite also has several default variables which correspond to special addresses for the computer. These are: 
 TTY to interact with the TTY
@@ -235,15 +235,25 @@ sprite<number>colour for sprite <number>'s colour
 sprite<number>coordinates for sprite <number>'s coordinates
 The sprites are numbered from 0 to 31, with sprite 31 being the top sprite. 
 
+In order to understand how to interact with each component, view Assembler/DeveloperGuide.txt
+
 Comments are written after a #, and continue to the end of the line.
 Characters are marked by a ' before the character itself, such as 'a
 Strings are surrounded on both sides by "
 
+When using the stack, one must be careful to ensure that function calls will behave correctly. In general, within a function, the total number of elements pushed onto the stack should be the same as the total number of elements pushed of the stack. If this is not done, then the function return may not pop the correct return address from the stack. 
+
 Example Code
 """"""""""""
-View Phemton Lite Test Code 3. 
+View any code in the PhemtonLiteCode folder
 
 Known Bugs:
+"""""""""""
+Array comparisons nto working
+Array slices not working
+Array constants not working
+
+Fixed Bugs:
 """""""""""
 Boolean variables not working correctly
 For loops in function output
