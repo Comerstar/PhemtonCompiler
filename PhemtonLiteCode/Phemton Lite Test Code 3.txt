@@ -66,13 +66,17 @@ def copyKeyboardIndirectTest3 () {
 
 #Converts an integer into a string
 string[5] def intToStr (int number) {
-  string[5] result = "00000";
+  string[5] result = "     ";
   int i = 4;
+  result[i] = (number % 10) | 0x0030;
+  pause;
+  number /= 10;
+  i--;
   while (i >= 0) and (number <> 0) {
     result[i] = (number % 10) | 0x0030;
+    pause;
     number /= 10;
     i--;
-    pause;
   }
   return result;
 }
@@ -90,15 +94,8 @@ int def strToInt(string[5] stringNumber) {
 
 #Allows the user to input two numbers and the operator and outputs the result
 def operateNumbers () {
-  string[50] printMessage1 = "When inputting numbers enter _ to denote the end. ";
-  string[23] printMessage2 = "Please input number 1: ";
-  string[23] printMessage3 = "Please input number 2: ";
-  string[27] printMessage4 = "Please input the operator: ";
-  string[8] printMessage5 = "Result: ";
   TTY = 0;
-  for i in printMessage1 {
-    TTY = i;
-  }
+  TTY = "When inputting numbers enter _ to denote the end. ";
   while true {
     int num1;
     int num2;
@@ -106,15 +103,14 @@ def operateNumbers () {
     string[5] numString1 = "00000";
     string[5] numString2 = "00000";
     string[5] resultString = "00000";
-    for i in printMessage2 {
-      TTY = i;
-    }
+    TTY = "Please input number 1: ";
     keyboard = 0;
     for i in 0 to 5 {
       int validDigit = 0;
       while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
+          pause;
           keyboard = 1;
         }
         if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
@@ -124,7 +120,6 @@ def operateNumbers () {
           while j < 4 {
             numString1[j] = numString1[j+1];
             j++;
-            pause;
           }
           numString1[4] = keyboard;
         }
@@ -134,16 +129,14 @@ def operateNumbers () {
         }
       }
     }
-    TTY = ' ;
-    for i in printMessage3 {
-      TTY = i;
-    }
+    TTY = " Please input number 2: ";
     keyboard = 0;
     for i in 0 to 5 {
       int validDigit = 0;
       while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
+          pause;
           keyboard = 1;
         }
         if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
@@ -153,7 +146,6 @@ def operateNumbers () {
           while j < 4 {
             numString2[j] = numString2[j+1];
             j++;
-            pause;
           }
           numString2[4] = keyboard;
         }
@@ -165,15 +157,13 @@ def operateNumbers () {
     }
     num1 = strToInt(numString1);
     num2 = strToInt(numString2);
-    TTY = ' ;
-    for i in printMessage4 {
-      TTY = i;
-    }
+    TTY = " Please input the operator: ";
     keyboard = 0;
     int validDigit = 0;
     while validDigit == 0 {
       keyboard = 1;
       while keyboard == 0 {
+        pause;
         keyboard = 1;
       }
       if keyboard == '+ {
@@ -212,15 +202,115 @@ def operateNumbers () {
         validDigit = 1;
       }
     }
-    TTY = ' ;
-    for i in printMessage5 {
-      TTY = i;
-    }
+    TTY = " Result: ";
     resultString = intToStr(result);
     for i in resultString {
-      TTY = i;
+      if i <> '  {
+        TTY = i;
+      }
     }
     TTY = ' ;
+  }
+}
+
+#Allows the user to input two numbers and the operator and outputs the result
+def exponentialNumbers () {
+  TTY = 0;
+  TTY = "When inputting numbers enter _ to denote the end. ";
+  while true {
+    int num1;
+    int num2;
+    int result;
+    string[5] numString1 = "00000";
+    string[5] numString2 = "00000";
+    string[5] resultString = "00000";
+    TTY = "Please input number 1 (the base): ";
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          pause;
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString1[j] = numString1[j+1];
+            j++;
+          }
+          numString1[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
+      }
+    }
+    TTY = " Please input number 2 (the power): ";
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          pause;
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString2[j] = numString2[j+1];
+            j++;
+          }
+          numString2[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
+      }
+    }
+    num1 = strToInt(numString1);
+    num2 = strToInt(numString2);
+    result = 1;
+    for i in 0 to num2 {
+      result *= num1;
+    }
+    TTY = " Result: ";
+    resultString = intToStr(result);
+    for i in resultString {
+      if i <> '  {
+        TTY = i;
+      }
+    }
+    TTY = ' ;
+  }
+}
+
+def fib () {
+  TTY = 0;
+  string[5] resultString;
+  int a = 1;
+  int b = 1;
+  int c = 2;
+  TTY = "1, 1, 2, ";
+  while true {
+    a = b;
+    b = c;
+    c = a + b;
+    resultString = intToStr(c);
+    for i in resultString {
+      if i <> '  {
+        TTY = i;
+      }
+    }
+    TTY = ", ";
   }
 }
 
@@ -230,11 +320,7 @@ mode = 0x2007;
 pause;
 pause;
 
-string[52] opening = "Enter the number of the test code you wish to view. ";
-string[16] invalidInput = "Invalid Number. ";
-for i in opening {
-  TTY = i;
-}
+TTY = "Enter the number of the test code you wish to view. ";
 while true {
   keyboard = 0;
   keyboard = 1;
@@ -246,23 +332,27 @@ while true {
     printHelloWorld();
   }
   elif keyboard == 0x0032 {
-    copyKeyboard();
-  }
-  elif keyboard == 0x0033 {
     operateNumbers();
   }
+  elif keyboard == 0x0033 {
+    exponentialNumbers();
+  }
   elif keyboard == 0x0034 {
-    copyKeyboardIndirectTest();
+    fib();
   }
   elif keyboard == 0x0035 {
-    copyKeyboardIndirectTest2();
+    copyKeyboard();
   }
   elif keyboard == 0x0036 {
+    copyKeyboardIndirectTest();
+  }
+  elif keyboard == 0x0037 {
+    copyKeyboardIndirectTest2();
+  }
+  elif keyboard == 0x0038 {
     copyKeyboardIndirectTest3();
   }
   else {
-    for i in invalidInput {
-      TTY = i;
-    }
+    TTY = "Invalid Number. ";
   }
 }

@@ -266,6 +266,8 @@ LDV 0020 TTY
 %Instruct3 = 0105
 %Instruct4 = 0106
 %aAppleCoord = 0107
+%aEdgeCheckJump = 0108
+%aEdgeCheck = 0109
 
 #4808 = Right, 4809 = Down, 480a = Left, 480b = Up
 
@@ -287,6 +289,10 @@ LDV 0580 aAHeadC
 LDV 0480 aTailC
 LDV 0000 aATailC
 LDV f800 aAppleC
+
+#Set default EdgeCheck values
+LDV Instruct1 aEdgeCheckJump
+LDV 0001 aEdgeCheck
 
 #Clear the queue
 LDV 0001 aBufferReset //startGame
@@ -350,13 +356,86 @@ LDV 2007 MODE
 PWS
 PWS
 
+LDV 0000 KYBD
+
 #Spin until controller input
 PWS //Spin
+LDV 0001 KYBD
+ANB SBA 'e KYBD
+JPF EQL ChangeEdge
 ANB INB 0000 CTRLR1P
 JPB 00 Spin
+JMP StartGameLoop
+
+ANB INB 0000 aEdgeCheck //ChangeEdge
+JPF EQL EdgeCheckEnable
+LDV return2 aEdgeCheckJump
+LDV 0000 aEdgeCheck
+LDV 0000 TTY
+LDV 'E TTY
+LDV 'd TTY
+LDV 'g TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'c TTY
+LDV 'o TTY
+LDV 'l TTY
+LDV 'l TTY
+LDV 'i TTY
+LDV 's TTY
+LDV 'i TTY
+LDV 'o TTY
+LDV 'n TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'd TTY
+LDV 'i TTY
+LDV 's TTY
+LDV 'a TTY
+LDV 'b TTY
+LDV 'l TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV '. TTY
+LDV '_ TTY
+JMP Spin
+
+LDV Instruct1 aEdgeCheckJump //EdgeCheckEnable
+LDV 0001 aEdgeCheck
+LDV 0000 TTY
+LDV 'E TTY
+LDV 'd TTY
+LDV 'g TTY
+LDV 'e TTY
+LDV '_ TTY
+
+LDV 'c TTY
+LDV 'o TTY
+LDV 'l TTY
+LDV 'l TTY
+LDV 'i TTY
+LDV 's TTY
+LDV 'i TTY
+LDV 'o TTY
+LDV 'n TTY
+LDV 's TTY
+LDV '_ TTY
+
+LDV 'e TTY
+LDV 'n TTY
+LDV 'a TTY
+LDV 'b TTY
+LDV 'l TTY
+LDV 'e TTY
+LDV 'd TTY
+LDV '. TTY
+LDV '_ TTY
+JMP Spin
 
 #Update execution mode
-PWS
+PWS //StartGameLoop
 LDV c003 MODE
 PWS
 PWS
@@ -392,9 +471,9 @@ PWS
 #Prepare the address where the snake head will be next
 ALB ADD 0004 aDirection aVarA
 #Fetch the value of the check of whether the snake will collide with itself and load the result into the ACC
-JMP Instruct1
+JPD aEdgeCheckJump
 JPF NQL Gameover //return
-LDI aDirection aBufferWrite
+LDI aDirection aBufferWrite //return2
 
 #Update sprite positions
 LDD aHeadSprite aHeadX
@@ -477,8 +556,16 @@ JPF CRY PRINTSCORELOOP
 LDV 002e TTY 
 LDV 0020 TTY
 
+ANB INB 0000 aEdgeCheck
+JPF EQL NoEdgeHighScore
+LDD 3c01 0111
+LDV 3c01 0112
+JMP Continue
+LDD 3c02 0111 //NoEdgeHighScore
+LDV 3c02 0112
+
 #See if it is a new high score
-AND SBA 3c01 0110
+AND SBA 0111 0110 //Continue
 JPF NCY NEWHIGHSCORE
 
 LDV 0048 TTY
@@ -497,7 +584,7 @@ LDV 0073 TTY
 LDV 0020 TTY
 
 #Print old high score
-PSD 3c01
+PSD 0111
 PSV PRINTHIGHSCORE
 
 JMP BinaryToBCD
@@ -514,7 +601,7 @@ LDV 0020 TTY
 JMP ENDMENU
 
 #Celebrate new high score
-LDD 0110 3c01//NEWHIGHSCORE
+LID 0110 0112//NEWHIGHSCORE
 LDV 004e TTY
 LDV 0065 TTY
 LDV 0077 TTY

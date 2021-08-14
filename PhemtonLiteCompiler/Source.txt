@@ -1,209 +1,316 @@
-array[9] board;
+array[42] board;
 int winner;
+bool validInput;
+bool validMove;
+int column;
 int playerTurn;
 int turn;
+int move;
+int x;
+int y;
 int space;
-int validInput;
-int validTurn;
-int turnNumber;
-string[101] instructions = "Player 1 is red and player 2 is blue. Enter the number of the space you wish to place your piece in. ";
-string[12] player1Turn = "Red's turn. ";
-string[13] player2Turn = "Blue's turn. ";
-string[10] player1Win = "Red wins. ";
-string[11] player2Win = "Blue wins. ";
-string[6] draw = "Draw. ";
-string[49] endMessage = "Enter something into the keyboard to play again. ";
+int temp;
+array[7] columnHeights;
 
-int def checkWinner() {
-  #Check Horizontal
-  int checkSpace = space - (space % 3);
-  int previousSpace = board[checkSpace];
-  bool complete = true;
-  for i in 1 to 3 {
-    if board[checkSpace + i] <> previousSpace {
-      complete = false;
-    }
-  }
-  if complete {
-    if previousSpace <> 0 {
-      return previousSpace;
-    }
-  }
-  pause;
-  #Check Vertical
-  checkSpace = space % 3;
-  previousSpace = board[checkSpace];
-  complete = true;
-  for i in 1 to 3 {
-    if board[checkSpace + i * 3] <> previousSpace {
-      complete = false;
-    }
-  }
-  if complete {
-    if previousSpace <> 0 {
-      return previousSpace;
-    }
-  }
-  pause;
-  #Check RD Diagonal
-  checkSpace = 0;
-  previousSpace = board[checkSpace];
-  complete = true;
-  for i in 1 to 3 {
-    if board[checkSpace + i * 4] <> previousSpace {
-      complete = false;
-    }
-  }
-  if complete {
-    if previousSpace <> 0 {
-      return previousSpace;
-    }
-  }
-  pause;
-  #Check RU Diagonal
-  checkSpace = 2;
-  previousSpace = board[checkSpace];
-  complete = true;
-  for i in 1 to 3 {
-    if board[checkSpace + (i * 2)] <> previousSpace {
-      complete = false;
-    }
-  }
-  if complete {
-    if previousSpace <> 0 {
-      return previousSpace;
-    }
-  }
-  pause;
-  return 0;
-}
-
-def drawBoard () {
+#Setup the screen before the game. 
+def setupScreen () {
+  #Clear the board
   sprite0colour = 0x0001;
   sprite0coordinates = 0x0f0f;
   sprite1colour = 0xffff;
-  sprite1coordinates = 0x2204;
-  sprite2colour = 0xffff;
-  sprite2coordinates = 0x1111;
-  sprite3colour = 0xffff;
-  sprite3coordinates = 0x1344;
-  sprite4colour = 0x8c63;
-  sprite4coordinates = 0x5511;
-  sprite5colour = 0x8c63;
-  sprite5coordinates = 0x6800;
-  sprite6colour = 0x8c63;
-  sprite6coordinates = 0x9911;
-  sprite7colour = 0x8c63;
-  sprite7coordinates = 0x7822;
-  sprite8colour = 0x8c63;
-  sprite8coordinates = 0x6633;
-  sprite9colour = 0x8c63;
-  sprite9coordinates = 0x5944;
-  graphics;
-  sprite0colour = 0xffff;
-  sprite0coordinates = 0xaa11;
-  sprite1coordinates = 0xbd00;
-  sprite2coordinates = 0xee11;
-  sprite3coordinates = 0xcd22;
-  sprite4colour = 0xffff;
-  sprite4coordinates = 0xee33;
-  sprite5colour = 0xffff;
-  sprite5coordinates = 0xbd44;
-  sprite6colour = 0xffff;
-  sprite6coordinates = 0xaa33;
-  sprite7coordinates = 0x0057;
-  sprite8coordinates = 0x0477;
-  sprite9coordinates = 0x3359;
-  graphics;
-  sprite0coordinates = 0x5955;
-  sprite1coordinates = 0x5557;
-  sprite2coordinates = 0x5877;
-  sprite3coordinates = 0x9988;
-  sprite4coordinates = 0x5899;
-  sprite5colour = 0x8c63;
-  sprite5coordinates = 0xbd55;
-  sprite6colour = 0x8c63;
-  sprite6coordinates = 0xaa68;
-  sprite7coordinates = 0xbd77;
-  sprite8coordinates = 0xee88;
-  sprite9coordinates = 0xbd99;
-  graphics;
-  sprite0coordinates = 0x04aa;
-  sprite1coordinates = 0x33bb;
-  sprite2coordinates = 0x22cc;
-  sprite3coordinates = 0x11dd;
-  sprite4coordinates = 0x00ee;
-  sprite5coordinates = 0x68aa;
-  sprite6coordinates = 0x55bb;
-  sprite7coordinates = 0x99bb;
-  sprite8coordinates = 0x68cc;
-  sprite9coordinates = 0x55dd;
-  sprite10colour = 0x8c63;
-  sprite10coordinates = 0x99dd;
-  sprite11colour = 0x8c63;
-  sprite11coordinates = 0x68ee;
-  graphics;
-  sprite0coordinates = 0xbdaa;
-  sprite1coordinates = 0xaabb;
-  sprite2coordinates = 0xeebd;
-  sprite3coordinates = 0xbdcc;
-  sprite4coordinates = 0xbdee;
+  sprite1coordinates = 0x0f3f;
+  sprite2colour = 0x39cf;
+  sprite2coordinates = 0x1e4f;
+  sprite3colour = 0x0001;
+  sprite3coordinates = 0x1e55;
+  sprite4colour = 0x0001;
+  sprite4coordinates = 0x1e77;
+  sprite5colour = 0x0001;
+  sprite5coordinates = 0x1e99;
+  sprite6colour = 0x0001;
+  sprite6coordinates = 0x1ebb;
+  sprite7colour = 0x0001;
+  sprite7coordinates = 0x1edd;
+  sprite8colour = 0x0001;
+  sprite8coordinates = 0x1eff;
   graphics;
   sprite0colour = 0x0001;
-  sprite1colour = 0xf801;
-  sprite2colour = 0xf801;
-  sprite3colour = 0xf801;
-  sprite4colour = 0xf801;
-  sprite5colour = 0xf801;
-  sprite6colour = 0x04bf;
-  sprite7colour = 0x04bf;
-  sprite8colour = 0x04bf;
-  sprite9colour = 0x04bf;
+  sprite0coordinates = 0x224f;
+  sprite1colour = 0x0001;
+  sprite1coordinates = 0x444f;
+  sprite2colour = 0x0001;
+  sprite2coordinates = 0x664f;
+  sprite3coordinates = 0x884f;
+  sprite4coordinates = 0xaa4f;
+  sprite5coordinates = 0xcc4f;
+  sprite6coordinates = 0xee4f;
+  graphics;
+  #Setup counter colours whilst changing their coordinates to ensure that they cannot be seen. 
+  sprite0colour = 0x8801;
   sprite0coordinates = 0x1010;
+  sprite1colour = 0xd841;
   sprite1coordinates = 0x1010;
+  sprite2colour = 0xfe8b;
   sprite2coordinates = 0x1010;
+  sprite3colour = 0xffdf;
   sprite3coordinates = 0x1010;
-  sprite4coordinates = 0x1010;
-  sprite5coordinates = 0x1010;
-  sprite6coordinates = 0x1010;
-  sprite7coordinates = 0x1010;
-  sprite8coordinates = 0x1010;
-  sprite9coordinates = 0x1010;
-  sprite10colour = 0;
-  sprite10coordinates = 0xffff;
-  sprite11colour = 0;
+  sprite4colour = 0;
+  sprite4coordinates = 0x0f02;
+  sprite5colour = 0;
+  sprite6colour = 0;
+  sprite7colour = 0;
+  sprite8colour = 0;
 }
 
-def drawX() {
-  int x = space % 3;
-  pause;
-  int y = space / 3;
-  pause;
-  sprite0coordinates = ((x * 5) << 0xc) | ((x * 5 + 4) << 0x8) | ((y * 5) << 0x4) | ((y * 5 + 4));
-  sprite1coordinates = ((x * 5 + 1) << 0xc) | ((x * 5 + 1) << 0x8) | ((y * 5 + 1) << 0x4) | ((y * 5 + 1));
-  sprite2coordinates = ((x * 5 + 4) << 0xc) | ((x * 5 + 4) << 0x8) | ((y * 5 + 1) << 0x4) | ((y * 5 + 1));
-  sprite3coordinates = ((x * 5 + 1) << 0xc) | ((x * 5 + 1) << 0x8) | ((y * 5 + 4) << 0x4) | ((y * 5 + 4));
-  sprite4coordinates = ((x * 5 + 4) << 0xc) | ((x * 5 + 4) << 0x8) | ((y * 5 + 4) << 0x4) | ((y * 5 + 4));
-  sprite5coordinates = ((x * 5 + 2) << 0xc) | ((x * 5 + 3) << 0x8) | ((y * 5 + 2) << 0x4) | ((y * 5 + 3));
+#drawRedCounter
+def drawRed () {
+  x = (column << 1);
+  y = (columnHeights[column] << 1);
+  temp = (x << 0xc) | (x << 0x8) | (y << 0x4) | (y);
+  sprite0coordinates = temp + 0x1245;
+  sprite1coordinates = temp + 0x1144;
   graphics;
 }
 
-def drawO() {
-  int x = space % 3;
-  pause;
-  int y = space / 3;
-  pause;
-  sprite0coordinates = ((x * 5) << 0xc) | ((x * 5 + 4) << 0x8) | ((y * 5) << 0x4) | ((y * 5 + 4));
-  sprite6coordinates = ((x * 5 + 2) << 0xc) | ((x * 5 + 3) << 0x8) | ((y * 5 + 1) << 0x4) | ((y * 5 + 1));
-  sprite7coordinates = ((x * 5 + 2) << 0xc) | ((x * 5 + 3) << 0x8) | ((y * 5 + 4) << 0x4) | ((y * 5 + 4));
-  sprite8coordinates = ((x * 5 + 1) << 0xc) | ((x * 5 + 1) << 0x8) | ((y * 5 + 2) << 0x4) | ((y * 5 + 3));
-  sprite9coordinates = ((x * 5 + 4) << 0xc) | ((x * 5 + 4) << 0x8) | ((y * 5 + 2) << 0x4) | ((y * 5 + 3));
+#drawYellowcounter
+def drawYellow () {
+  x = (column << 1);
+  y = (columnHeights[column] << 1);
+  temp = (x << 0xc) | (x << 0x8) | (y << 0x4) | (y);
+  sprite2coordinates = temp + 0x1245;
+  sprite3coordinates = temp + 0x1144;
   graphics;
 }
+
+int def checkWinner () {
+  #Check horizontal
+  #TTY = "Horizontal ";
+  x = column - 3;
+  int max = column + 4;
+  y = columnHeights[column] * 7;
+  if x + 3 <= 2 {
+    x = 0;
+  }
+  if max > 7 {
+    max = 7;
+  }
+  int run;
+  int previousSpace = 3;
+  int currentSpace;
+  while x < max {
+    currentSpace = board[x + y];
+    #TTY = (x + y) | 0x0040;
+    if currentSpace == previousSpace {
+      run++;
+      if run == 4 {
+        return currentSpace;
+      }
+    }
+    else {
+      run = 1;
+      previousSpace = currentSpace;
+    }
+    x++;
+  }
+
+  #Check vertical
+  #TTY = "Vertical ";
+  x = column;
+  y -= 21;
+  max = y + 49;
+  if y + 21 <= 14 {
+    y = 0;
+  }
+  if max > 42 {
+    max = 42;
+  }
+  previousSpace = 3;
+  while y < max {
+    currentSpace = board[x + y];
+    #TTY = (x + y) | 0x0040;
+    if currentSpace == previousSpace {
+      run++;
+      if run == 4 {
+        return currentSpace;
+      }
+    }
+    else {
+      run = 1;
+      previousSpace = currentSpace;
+    }
+    y += 7;
+  }
+
+  #Check RD diagonal
+  #TTY = "RD Diagonal ";
+  x = column - 3;
+  y = columnHeights[column] - 3;
+  previousSpace = 3;
+  if x + 3 <= 2 {
+    y -= x;
+    x = 0;
+  }
+  if y + 3 <= 2 {
+    x -= y;
+    y = 0;
+  }
+  y *= 7;
+  while (x < 7) and (y < 42) {
+    currentSpace = board[x + y];
+    #TTY = (x + y) | 0x0040;
+    if currentSpace == previousSpace {
+      run++;
+      if run == 4 {
+        if currentSpace <> 0 {
+          return currentSpace;
+        }
+      }
+    }
+    else {
+      run = 1;
+      previousSpace = currentSpace;
+    }
+    x++;
+    y += 7;
+  }
+
+  #Check RU diagonal
+  #TTY = "RU Diagonal ";
+  x = column - 3;
+  y = columnHeights[column] + 3;
+  previousSpace = 3;
+  if x + 3 <= 2 {
+    y += x;
+    x = 0;
+  }
+  if y >= 7 {
+    x += y - 6;
+    y = 6;
+  }
+  y *= 7;
+  while (x < 7) and (y + 21 > 14) {
+    currentSpace = board[x + y];
+    #TTY = (x + y) | 0x0040;
+    if currentSpace == previousSpace {
+      run++;
+      if run == 4 {
+        if currentSpace <> 0 {
+          return currentSpace;
+        }
+      }
+    }
+    else {
+      run = 1;
+      previousSpace = currentSpace;
+    }
+    x++;
+    y -= 7;
+  }
+  return 0;
+}
+
+string[5] printString;
+#Converts an integer into a string
+def intToStr (int number) {
+  printString = "     ";
+  int i = 4;
+  printString[i] = (number % 10) | 0x0030;
+  pause;
+  number /= 10;
+  i--;
+  while (i >= 0) and (number <> 0) {
+    printString[i] = (number % 10) | 0x0030;
+    pause;
+    number /= 10;
+    i--;
+  }
+}
+
+bool swap = false;
+bool winCount = false;
+int player1Wins = 0;
+int player2Wins = 0;
+int draws = 0;
+bool spinning;
+int previousStart = 2;
 
 mode = 0xc007;
 
+TTY = 0;
+TTY = "The players are red and yellow. Enter the number of the column you wish to play your piece in. The columns are numbered 1 2 3 4 5 6 7. ";
+setupScreen();
+
 while true {
+  TTY = "Enter a digit to start the game. ";
+  spinning = true;
+  while spinning {
+    keyboard = 1;
+    while keyboard == 0{
+      keyboard = 1;
+    }
+    if keyboard & 0x00f0 == 0x0030 and keyboard & 0x000f < 10 {
+      spinning = false;
+    }
+    elif keyboard == 's {
+      if swap {
+        swap = false;
+        TTY = 0;
+        TTY = "Player swapping disabled. ";
+      }
+      else {
+        swap = true;
+        TTY = 0;
+        TTY = "Player swapping enabled. ";
+      }
+    }
+    elif keyboard == 'w {
+      if winCount {
+        winCount = false;
+        TTY = 0;
+        TTY = "Win count disabled. ";
+      }
+      else {
+        winCount = true;
+        TTY = 0;
+        TTY = "Win count enabled. ";
+      }
+    }
+    elif keyboard == 'r {
+      player1Wins = 0;
+      player2Wins = 0;
+      draws = 0;
+      previousStart = 2;
+      TTY = 0;
+      TTY = "Win count reset. ";
+    }
+    elif keyboard == 'd {
+      if winCount {
+        TTY = 0;
+        TTY = "Red wins: ";
+        intToStr(player1Wins);
+        for i in printString {
+          if i <> '  {
+            TTY = i;
+          }
+        }
+        TTY = " Yellow wins: ";
+        intToStr(player2Wins);
+        for i in printString {
+          if i <> '  {
+            TTY = i;
+          }
+        }
+        TTY = " Draws: ";
+        intToStr(draws);
+        for i in printString {
+          if i <> '  {
+            TTY = i;
+          }
+        }
+      }
+    }
+  }
+  #Reset the board
   board[0] = 0;
   board[1] = 0;
   board[2] = 0;
@@ -213,99 +320,140 @@ while true {
   board[6] = 0;
   board[7] = 0;
   board[8] = 0;
-  turnNumber = 0;
+  board[9] = 0;
+  board[10] = 0;
+  board[11] = 0;
+  board[12] = 0;
+  board[13] = 0;
+  board[14] = 0;
+  board[15] = 0;
+  board[16] = 0;
+  board[17] = 0;
+  board[18] = 0;
+  board[19] = 0;
+  board[20] = 0;
+  board[21] = 0;
+  board[22] = 0;
+  board[23] = 0;
+  board[24] = 0;
+  board[25] = 0;
+  board[26] = 0;
+  board[27] = 0;
+  board[28] = 0;
+  board[29] = 0;
+  board[30] = 0;
+  board[31] = 0;
+  board[32] = 0;
+  board[33] = 0;
+  board[34] = 0;
+  board[35] = 0;
+  board[36] = 0;
+  board[37] = 0;
+  board[38] = 0;
+  board[39] = 0;
+  board[40] = 0;
+  board[41] = 0;
+  columnHeights[0] = 5;
+  columnHeights[1] = 5;
+  columnHeights[2] = 5;
+  columnHeights[3] = 5;
+  columnHeights[4] = 5;
+  columnHeights[5] = 5;
+  columnHeights[6] = 5;
   winner = 0;
-  playerTurn = 1;
-  drawBoard();
-  TTY = 0;
-  for i in instructions {
-    TTY = i;
+  if swap {
+    previousStart %= 2;
+    previousStart++;
+    playerTurn = previousStart;
   }
+  else {
+    playerTurn = 1;
+    previousStart = 2;
+  }
+  turn = 0;
+  setupScreen();
+  TTY = 0;
   while winner == 0 {
     keyboard = 0;
+    int temp;
     if playerTurn == 1 {
-      sprite10colour = 0xf801;
+      sprite4colour = 0xd841;
       graphics;
-      for i in player1Turn {
-        TTY = i;
-      }
+      TTY = "Red's Turn. ";
     }
     elif playerTurn == 2 {
-      sprite10colour = 0x04bf;
+      sprite4colour = 0xff4b;
       graphics;
-      for i in player2Turn {
-        TTY = i;
-      }
+      TTY = "Yellow's Turn. ";
     }
-    validTurn = 0;
-    while validTurn == 0 {
-      validInput = 0;
-      while validInput == 0 {
+    validMove = false;
+    while validMove == false {
+      validInput = false;
+      while validInput == false {
         keyboard = 1;
         while keyboard == 0 {
           keyboard = 1;
         }
         if keyboard & 0x00f0 == 0x0030 {
-          turn = keyboard & 0x000f;
-          if turn > 0 and turn < 10 {
-            validInput = 1;
+          move = keyboard & 0x000f;
+          if (move <> 0) and (move < 8) {
+            validInput = true;
           }
         }
       }
-      space = turn - 1;
-      if board[space] == 0 {
-        validTurn = 1;
-        board[space] = playerTurn;
-        sprite10colour = 0x7001;
-        graphics;
-        if playerTurn == 1 {
-          drawX();
-        }
-        elif playerTurn == 2 {
-          sprite10colour = 0x0151;
-          graphics;
-          drawO();
-        }
-        winner = checkWinner();
-        playerTurn++;
-        turnNumber ++;
-        if playerTurn == 3 {
-          playerTurn = 1;
-        }
+      column = move - 1;
+      temp = columnHeights[column];
+      if (temp + 1 > 0) and (temp < 6) {
+        validMove = true;
       }
-      if turnNumber > 8 and winner == 0 {
-        winner = 3;
-      }
+    }
+    board[column + temp * 7] = playerTurn;
+    if playerTurn == 1 {
+      sprite4colour = 0x7001;
+      graphics;
+      drawRed();
+    }
+    elif playerTurn == 2 {
+      sprite4colour = 0x9c01;
+      graphics;
+      drawYellow();
+    }
+    winner = checkWinner();
+    #Update column height
+    columnHeights[column]--;
+    pause;
+    playerTurn %= 2;
+    playerTurn++;
+    turn ++;
+    #If board is filled, make game a draw
+    if turn >= 42 and winner == 0 {
+      winner = 3;
     }
     TTY = 0;
   }
-  TTY = 0;
+  keyboard = 0;
   if winner == 1 {
-    sprite10colour = 0xf801;
+    sprite4colour = 0xd841;
     graphics;
-    for i in player1Win {
-      TTY = i;
+    TTY = "Red wins. ";
+    if winCount {
+      player1Wins++;
     }
   }
   elif winner == 2 {
-    sprite10colour = 0x04bf;
+    sprite4colour = 0xff4b;
     graphics;
-    for i in player2Win {
-      TTY = i;
+    TTY = "Yellow wins. ";
+    if winCount {
+      player2Wins++;
     }
   }
   elif winner == 3 {
-    sprite10colour = 0x8c63;
+    sprite4colour = 0x39cf;
     graphics;
-    for i in draw {
-      TTY = i;
+    TTY = "Draw. ";
+    if winCount {
+      draws++;
     }
-  }
-  for i in endMessage {
-    TTY = i;
-  }
-  keyboard = 0;
-  while keyboard == 0 {
-    keyboard = 1;
   }
 }

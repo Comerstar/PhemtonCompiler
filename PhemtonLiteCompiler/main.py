@@ -1188,6 +1188,11 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
       rightType = rightTemp[0]
       tree.left = leftTemp[5]
       tree.right = rightTemp[5]
+      if isinstance(tree.left,list):
+        if len(tree.left) == 2:
+          if tree.left[1] == "IDENTIFIER" and tree.left[0] == "TTY":
+            if rightType in ["ARRAY", "STRING", "ARRAY_CONST", "STRING_CONST"]:
+              leftType = "STRING"
       if (leftType in ["CHAR", "INT", "BOOLEAN"]) and (rightType in ["CHAR", "INT", "BOOLEAN", "CHAR_CONST", "INT_CONST", "BOOLEAN_CONST"]):
         return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
       elif (leftType in ["ARRAY", "STRING"] and rightType in ["ARRAY", "STRING", "ARRAY_CONST", "STRING_CONST"]):
@@ -1214,7 +1219,7 @@ def determineType(tree, varScope, arrayScope, funcScope, number):
           elif (leftType in ["ARRAY", "STRING"]):
             return "NONE", varScope, arrayScope, funcScope, number, tree, None, None
           else:
-            raise Exception("Invalid types around operator in: " + tree.cleanPrint())
+            raise Exception("Invalid types " + leftType + " around operator in: " + tree.cleanPrint())
         else:
           raise Exception()
       else:
@@ -3691,6 +3696,10 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
       number = tempRight[3]
       jumpNumber = tempRight[4]
       
+      if leftOperand[0][1] == "DIR" and leftOperand[0][0] == "TTY" and len(leftOperand) == 1:
+        leftOperand = []
+        for i in range(len(rightOperand)):
+          leftOperand.append(["TTY", "DIR"])
       if len(leftOperand) == len(rightOperand):
         for i in range(len(leftOperand)):
           if leftOperand[i][1] == "DIR":
