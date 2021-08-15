@@ -1,6 +1,6 @@
 !4000
 #Update execution mode
-LDV 2007 MODE
+LDV c007 MODE
 PWS
 PWS
 
@@ -284,11 +284,11 @@ LDV 0020 TTY
 %aATailSprite = 4807
 
 #Initialising the board
-LDV 0700 aHeadC
-LDV 0580 aAHeadC
-LDV 0480 aTailC
-LDV 0000 aATailC
-LDV f800 aAppleC
+LDV 0781 aHeadC
+LDV 0581 aAHeadC
+LDV 0481 aTailC
+LDV 0001 aATailC
+LDV f801 aAppleC
 
 #Set default EdgeCheck values
 LDV Instruct1 aEdgeCheckJump
@@ -299,17 +299,13 @@ LDV 0001 aBufferReset //startGame
 LDV 0000 aBufferReset
 
 #Clear the screen by setting the highest sprite to a black square covering the whole screen
-LDV 0f0f 33ca
-LDV 0001 33cb
+LDV 0f0f 33fe
+LDV 0001 33ff
 #Ensure cleared screen is rendered
-LDV 0007 MODE
-PWS
-PWS
-LDV 2007 MODE
-PWS
-PWS
+GRF
+
 #Ensure the clearing sprite is removed
-LDV 0000 33cb
+LDV 0000 33ff
 
 #Write initial snake position to the queue
 LDV 0071 aBufferWrite
@@ -332,12 +328,6 @@ LDD 4810 aAppleX
 #Reset controller 1
 LDV 0000 CTRLR1P
 
-#Load in colours
-LDV 0701 aHeadC
-LDV 0581 aAHeadC
-LDV 0481 aTailC
-LDV 0001 aATailC
-LDV f801 aAppleC
 #Load in data into the sprite table
 LDD aHeadSprite aHeadX
 LDD aAHeadSprite aAHeadX
@@ -349,23 +339,129 @@ LDV 0000 aScore
 LDV 4808 aDirection
 
 #Render screen
-LDV 0007 MODE
-PWS
-PWS
-LDV 2007 MODE
-PWS
-PWS
+GRF
 
 LDV 0000 KYBD
 
 #Spin until controller input
 PWS //Spin
 LDV 0001 KYBD
-ANB SBA 'e KYBD
-JPF EQL ChangeEdge
+ANB INB 0000 KYBD
+JPF NQL Settings
 ANB INB 0000 CTRLR1P
 JPB 00 Spin
 JMP StartGameLoop
+
+ANB SBA 'e KYBD //Settings
+JPF EQL ChangeEdge
+ANB SBA 'r KYBD
+JPF EQL Red
+ANB SBA 'o KYBD
+JPF EQL Orange
+ANB SBA 'g KYBD
+JPF EQL Green
+ANB SBA 'b KYBD
+JPF EQL Blue
+ANB SBA 'p KYBD
+JPF EQL Purple
+ANB SBA 'y KYBD
+JPF EQL Yellow
+ANB SBA 'w KYBD
+JPF EQL White
+ANB SBA 'a KYBD
+JPF EQL Aqua
+ANB SBA 'm KYBD
+JPF EQL Magenta
+ANB SBA '0 KYBD
+JPF EQL ColourRandom
+ANB SBA '1 KYBD
+JPF EQL ColourScheme1
+ANB SBA '2 KYBD
+JPF EQL ColourScheme2
+ANB SBA '3 KYBD
+JPF EQL ColourScheme3
+JMP Spin
+
+LDV fa57 aHeadC //Red
+LDV e801 aAHeadC
+LDV a001 aTailC
+GRF
+JMP Spin
+
+LDV fd05 aHeadC //Orange
+LDV e241 aAHeadC
+LDV 9101 aTailC
+GRF
+JMP Spin
+
+LDV 0781 aHeadC //Green
+LDV 0581 aAHeadC
+LDV 0481 aTailC
+GRF
+JMP Spin
+
+LDV 5cbf aHeadC //Blue
+LDV 127f aAHeadC
+LDV 0073 aTailC
+GRF
+JMP Spin
+
+LDV b37f aHeadC //Purple
+LDV 893f aAHeadC
+LDV 6035 aTailC
+GRF
+JMP Spin
+
+LDV ff41 aHeadC //Yellow
+LDV c541 aAHeadC
+LDV 9bc1 aTailC
+GRF
+JMP Spin
+
+LDV ffff aHeadC //White
+LDV bdef aAHeadC
+LDV 8421 aTailC
+GRF
+JMP Spin
+
+LDV 37f1 aHeadC //Aqua
+LDV 05e5 aAHeadC
+LDV 041b aTailC
+GRF
+JMP Spin
+
+LDV e2ff aHeadC //Magenta
+LDV c03d aAHeadC
+LDV 902d aTailC
+GRF
+JMP Spin
+
+LDV fa39 aHeadC //ColourScheme1
+LDV e829 aAHeadC
+LDV a817 aTailC
+GRF
+JMP Spin
+
+LDV 3eff aHeadC //ColourScheme2
+LDV 0535 aAHeadC
+LDV 03a3 aTailC
+GRF
+JMP Spin
+
+LDV fa41 aHeadC //ColourScheme3
+LDV 0001 aAHeadC
+LDV 00ff aTailC
+GRF
+JMP Spin
+
+LDV ffff RND //ColourRandom
+ALB ORR 0001 RND aHeadC
+LDV ffff RND
+ALB ORR 0001 RND aAHeadC
+LDV ffff RND
+ALB ORR 0001 RND aTailC
+GRF
+JMP Spin
 
 ANB INB 0000 aEdgeCheck //ChangeEdge
 JPF EQL EdgeCheckEnable
@@ -507,7 +603,7 @@ JMP StartLoop
 PWS //Gameover
 #Update execution mode
 LDV 0010 PRCT
-LDV 2007 MODE
+LDV c007 MODE
 PWS
 
 #Print game over message
