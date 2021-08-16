@@ -22,7 +22,6 @@ int def checkWinner() {
       return previousSpace;
     }
   }
-  pause;
   #Check Vertical
   checkSpace = space % 3;
   previousSpace = board[checkSpace];
@@ -37,7 +36,6 @@ int def checkWinner() {
       return previousSpace;
     }
   }
-  pause;
   #Check RD Diagonal
   checkSpace = 0;
   previousSpace = board[checkSpace];
@@ -52,7 +50,6 @@ int def checkWinner() {
       return previousSpace;
     }
   }
-  pause;
   #Check RU Diagonal
   checkSpace = 2;
   previousSpace = board[checkSpace];
@@ -67,7 +64,6 @@ int def checkWinner() {
       return previousSpace;
     }
   }
-  pause;
   return 0;
 }
 
@@ -169,7 +165,6 @@ def drawBoard () {
 
 def drawX () {
   int x = (space % 3) * 5;
-  pause;
   int y = (space / 3) * 5;
   int temp = (x << 0xc) | (x << 0x8) | (y << 0x4) | (y);
   sprite0coordinates = temp + 0x0404;
@@ -183,7 +178,6 @@ def drawX () {
 
 def drawO () {
   int x = (space % 3) * 5;
-  pause;
   int y = (space / 3) * 5;
   int temp = (x << 0xc) | (x << 0x8) | (y << 0x4) | (y);
   sprite0coordinates = temp + 0x0404;
@@ -200,12 +194,10 @@ def intToStr (int number) {
   printString = "     ";
   int i = 4;
   printString[i] = (number % 10) | 0x0030;
-  pause;
   number /= 10;
   i--;
   while (i >= 0) and (number <> 0) {
     printString[i] = (number % 10) | 0x0030;
-    pause;
     number /= 10;
     i--;
   }

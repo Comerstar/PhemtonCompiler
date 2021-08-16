@@ -215,12 +215,10 @@ def intToStr (int number) {
   printString = "     ";
   int i = 4;
   printString[i] = (number % 10) | 0x0030;
-  pause;
   number /= 10;
   i--;
   while (i >= 0) and (number <> 0) {
     printString[i] = (number % 10) | 0x0030;
-    pause;
     number /= 10;
     i--;
   }
@@ -421,7 +419,6 @@ while true {
     winner = checkWinner();
     #Update column height
     columnHeights[column]--;
-    pause;
     playerTurn %= 2;
     playerTurn++;
     turn ++;

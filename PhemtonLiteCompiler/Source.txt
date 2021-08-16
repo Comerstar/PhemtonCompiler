@@ -1,459 +1,352 @@
-array[42] board;
-int winner;
-bool validInput;
-bool validMove;
-int column;
-int playerTurn;
-int turn;
-int move;
-int x;
-int y;
-int space;
-int temp;
-array[7] columnHeights;
-
-#Setup the screen before the game. 
-def setupScreen () {
-  #Clear the board
-  sprite0colour = 0x0001;
-  sprite0coordinates = 0x0f0f;
-  sprite1colour = 0xffff;
-  sprite1coordinates = 0x0f3f;
-  sprite2colour = 0x39cf;
-  sprite2coordinates = 0x1e4f;
-  sprite3colour = 0x0001;
-  sprite3coordinates = 0x1e55;
-  sprite4colour = 0x0001;
-  sprite4coordinates = 0x1e77;
-  sprite5colour = 0x0001;
-  sprite5coordinates = 0x1e99;
-  sprite6colour = 0x0001;
-  sprite6coordinates = 0x1ebb;
-  sprite7colour = 0x0001;
-  sprite7coordinates = 0x1edd;
-  sprite8colour = 0x0001;
-  sprite8coordinates = 0x1eff;
-  graphics;
-  sprite0colour = 0x0001;
-  sprite0coordinates = 0x224f;
-  sprite1colour = 0x0001;
-  sprite1coordinates = 0x444f;
-  sprite2colour = 0x0001;
-  sprite2coordinates = 0x664f;
-  sprite3coordinates = 0x884f;
-  sprite4coordinates = 0xaa4f;
-  sprite5coordinates = 0xcc4f;
-  sprite6coordinates = 0xee4f;
-  graphics;
-  #Setup counter colours whilst changing their coordinates to ensure that they cannot be seen. 
-  sprite0colour = 0x8801;
-  sprite0coordinates = 0x1010;
-  sprite1colour = 0xd841;
-  sprite1coordinates = 0x1010;
-  sprite2colour = 0xfe8b;
-  sprite2coordinates = 0x1010;
-  sprite3colour = 0xffdf;
-  sprite3coordinates = 0x1010;
-  sprite4colour = 0;
-  sprite4coordinates = 0x0f02;
-  sprite5colour = 0;
-  sprite6colour = 0;
-  sprite7colour = 0;
-  sprite8colour = 0;
+def printHelloWorld () {
+  TTY = 0;
+  string[38] printString = "Hello World! Phemton Lite vA1.0 lives!";
+  while true {
+    for i in printString {
+      TTY = i;
+      pause;
+    }
+    TTY = 0;
+  }
 }
 
-#drawRedCounter
-def drawRed () {
-  x = (column << 1);
-  y = (columnHeights[column] << 1);
-  temp = (x << 0xc) | (x << 0x8) | (y << 0x4) | (y);
-  sprite0coordinates = temp + 0x1245;
-  sprite1coordinates = temp + 0x1144;
-  graphics;
+def copyKeyboard () {
+  TTY = 0;
+  while true {
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+    }
+  }
 }
 
-#drawYellowcounter
-def drawYellow () {
-  x = (column << 1);
-  y = (columnHeights[column] << 1);
-  temp = (x << 0xc) | (x << 0x8) | (y << 0x4) | (y);
-  sprite2coordinates = temp + 0x1245;
-  sprite3coordinates = temp + 0x1144;
-  graphics;
+def copyKeyboardIndirectTest () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num[i] = keyboard;
+      TTY = num[i];
+    }
+  }
 }
 
-int def checkWinner () {
-  #Check horizontal
-  #TTY = "Horizontal ";
-  x = column - 3;
-  int max = column + 4;
-  y = columnHeights[column] * 7;
-  if x + 3 <= 2 {
-    x = 0;
-  }
-  if max > 7 {
-    max = 7;
-  }
-  int run;
-  int previousSpace = 3;
-  int currentSpace;
-  while x < max {
-    currentSpace = board[x + y];
-    #TTY = (x + y) | 0x0040;
-    if currentSpace == previousSpace {
-      run++;
-      if run == 4 {
-        return currentSpace;
-      }
+def copyKeyboardIndirectTest2 () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num1;
+    array[1] num2;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num1[0] = keyboard;
+      num2[i] = num1[i];
+      TTY = num2[0];
     }
-    else {
-      run = 1;
-      previousSpace = currentSpace;
-    }
-    x++;
   }
-
-  #Check vertical
-  #TTY = "Vertical ";
-  x = column;
-  y -= 21;
-  max = y + 49;
-  if y + 21 <= 14 {
-    y = 0;
-  }
-  if max > 42 {
-    max = 42;
-  }
-  previousSpace = 3;
-  while y < max {
-    currentSpace = board[x + y];
-    #TTY = (x + y) | 0x0040;
-    if currentSpace == previousSpace {
-      run++;
-      if run == 4 {
-        return currentSpace;
-      }
-    }
-    else {
-      run = 1;
-      previousSpace = currentSpace;
-    }
-    y += 7;
-  }
-
-  #Check RD diagonal
-  #TTY = "RD Diagonal ";
-  x = column - 3;
-  y = columnHeights[column] - 3;
-  previousSpace = 3;
-  if x + 3 <= 2 {
-    y -= x;
-    x = 0;
-  }
-  if y + 3 <= 2 {
-    x -= y;
-    y = 0;
-  }
-  y *= 7;
-  while (x < 7) and (y < 42) {
-    currentSpace = board[x + y];
-    #TTY = (x + y) | 0x0040;
-    if currentSpace == previousSpace {
-      run++;
-      if run == 4 {
-        if currentSpace <> 0 {
-          return currentSpace;
-        }
-      }
-    }
-    else {
-      run = 1;
-      previousSpace = currentSpace;
-    }
-    x++;
-    y += 7;
-  }
-
-  #Check RU diagonal
-  #TTY = "RU Diagonal ";
-  x = column - 3;
-  y = columnHeights[column] + 3;
-  previousSpace = 3;
-  if x + 3 <= 2 {
-    y += x;
-    x = 0;
-  }
-  if y >= 7 {
-    x += y - 6;
-    y = 6;
-  }
-  y *= 7;
-  while (x < 7) and (y + 21 > 14) {
-    currentSpace = board[x + y];
-    #TTY = (x + y) | 0x0040;
-    if currentSpace == previousSpace {
-      run++;
-      if run == 4 {
-        if currentSpace <> 0 {
-          return currentSpace;
-        }
-      }
-    }
-    else {
-      run = 1;
-      previousSpace = currentSpace;
-    }
-    x++;
-    y -= 7;
-  }
-  return 0;
 }
 
-string[5] printString;
+def copyKeyboardIndirectTest3 () {
+  TTY = 0;
+  while true {
+    int i = 0;
+    array[1] num;
+    keyboard = 1;
+    if keyboard <> 0 {
+      TTY = keyboard;
+      num[i] = keyboard + 0;
+      TTY = num[0];
+    }
+  }
+}
+
 #Converts an integer into a string
-def intToStr (int number) {
-  printString = "     ";
+string[5] def intToStr (int number) {
+  string[5] result = "     ";
   int i = 4;
-  printString[i] = (number % 10) | 0x0030;
-  pause;
+  result[i] = (number % 10) | 0x0030;
   number /= 10;
   i--;
   while (i >= 0) and (number <> 0) {
-    printString[i] = (number % 10) | 0x0030;
-    pause;
+    result[i] = (number % 10) | 0x0030;
     number /= 10;
     i--;
   }
+  return result;
 }
 
-bool swap = false;
-bool winCount = false;
-int player1Wins = 0;
-int player2Wins = 0;
-int draws = 0;
-bool spinning;
-int previousStart = 2;
-
-mode = 0xc007;
-
-TTY = 0;
-TTY = "The players are red and yellow. Enter the number of the column you wish to play your piece in. The columns are numbered 1 2 3 4 5 6 7. ";
-setupScreen();
-
-while true {
-  TTY = "Enter a digit to start the game. ";
-  spinning = true;
-  while spinning {
-    keyboard = 1;
-    while keyboard == 0{
-      keyboard = 1;
-    }
-    if keyboard & 0x00f0 == 0x0030 and keyboard & 0x000f < 10 {
-      spinning = false;
-    }
-    elif keyboard == 's {
-      if swap {
-        swap = false;
-        TTY = 0;
-        TTY = "Player swapping disabled. ";
-      }
-      else {
-        swap = true;
-        TTY = 0;
-        TTY = "Player swapping enabled. ";
-      }
-    }
-    elif keyboard == 'w {
-      if winCount {
-        winCount = false;
-        TTY = 0;
-        TTY = "Win count disabled. ";
-      }
-      else {
-        winCount = true;
-        TTY = 0;
-        TTY = "Win count enabled. ";
-      }
-    }
-    elif keyboard == 'r {
-      player1Wins = 0;
-      player2Wins = 0;
-      draws = 0;
-      previousStart = 2;
-      TTY = 0;
-      TTY = "Win count reset. ";
-    }
-    elif keyboard == 'd {
-      if winCount {
-        TTY = 0;
-        TTY = "Red wins: ";
-        intToStr(player1Wins);
-        for i in printString {
-          if i <> '  {
-            TTY = i;
-          }
-        }
-        TTY = " Yellow wins: ";
-        intToStr(player2Wins);
-        for i in printString {
-          if i <> '  {
-            TTY = i;
-          }
-        }
-        TTY = " Draws: ";
-        intToStr(draws);
-        for i in printString {
-          if i <> '  {
-            TTY = i;
-          }
-        }
-      }
-    }
+#Converts a string of digits to a binary number. Expects digit 0 to be the most significant bit
+int def strToInt(string[5] stringNumber) {
+  int result = 0;
+  for i in stringNumber {
+    int rawDigit = i & 0x000f;
+    result *= 10;
+    result += rawDigit;
   }
-  #Reset the board
-  board[0] = 0;
-  board[1] = 0;
-  board[2] = 0;
-  board[3] = 0;
-  board[4] = 0;
-  board[5] = 0;
-  board[6] = 0;
-  board[7] = 0;
-  board[8] = 0;
-  board[9] = 0;
-  board[10] = 0;
-  board[11] = 0;
-  board[12] = 0;
-  board[13] = 0;
-  board[14] = 0;
-  board[15] = 0;
-  board[16] = 0;
-  board[17] = 0;
-  board[18] = 0;
-  board[19] = 0;
-  board[20] = 0;
-  board[21] = 0;
-  board[22] = 0;
-  board[23] = 0;
-  board[24] = 0;
-  board[25] = 0;
-  board[26] = 0;
-  board[27] = 0;
-  board[28] = 0;
-  board[29] = 0;
-  board[30] = 0;
-  board[31] = 0;
-  board[32] = 0;
-  board[33] = 0;
-  board[34] = 0;
-  board[35] = 0;
-  board[36] = 0;
-  board[37] = 0;
-  board[38] = 0;
-  board[39] = 0;
-  board[40] = 0;
-  board[41] = 0;
-  columnHeights[0] = 5;
-  columnHeights[1] = 5;
-  columnHeights[2] = 5;
-  columnHeights[3] = 5;
-  columnHeights[4] = 5;
-  columnHeights[5] = 5;
-  columnHeights[6] = 5;
-  winner = 0;
-  if swap {
-    previousStart %= 2;
-    previousStart++;
-    playerTurn = previousStart;
-  }
-  else {
-    playerTurn = 1;
-    previousStart = 2;
-  }
-  turn = 0;
-  setupScreen();
+  return result;
+}
+
+#Allows the user to input two numbers and the operator and outputs the result
+def operateNumbers () {
   TTY = 0;
-  while winner == 0 {
+  TTY = "When inputting numbers enter _ to denote the end. ";
+  while true {
+    int num1;
+    int num2;
+    int result;
+    string[5] numString1 = "00000";
+    string[5] numString2 = "00000";
+    string[5] resultString = "00000";
+    TTY = "Please input number 1: ";
     keyboard = 0;
-    int temp;
-    if playerTurn == 1 {
-      sprite4colour = 0xd841;
-      graphics;
-      TTY = "Red's Turn. ";
-    }
-    elif playerTurn == 2 {
-      sprite4colour = 0xff4b;
-      graphics;
-      TTY = "Yellow's Turn. ";
-    }
-    validMove = false;
-    while validMove == false {
-      validInput = false;
-      while validInput == false {
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
           keyboard = 1;
         }
-        if keyboard & 0x00f0 == 0x0030 {
-          move = keyboard & 0x000f;
-          if (move <> 0) and (move < 8) {
-            validInput = true;
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString1[j] = numString1[j+1];
+            j++;
           }
+          numString1[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
         }
       }
-      column = move - 1;
-      temp = columnHeights[column];
-      if (temp + 1 > 0) and (temp < 6) {
-        validMove = true;
+    }
+    TTY = " Please input number 2: ";
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString2[j] = numString2[j+1];
+            j++;
+          }
+          numString2[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
       }
     }
-    board[column + temp * 7] = playerTurn;
-    if playerTurn == 1 {
-      sprite4colour = 0x7001;
-      graphics;
-      drawRed();
+    num1 = strToInt(numString1);
+    num2 = strToInt(numString2);
+    TTY = " Please input the operator: ";
+    keyboard = 0;
+    int validDigit = 0;
+    while validDigit == 0 {
+      keyboard = 1;
+      while keyboard == 0 {
+        keyboard = 1;
+      }
+      if keyboard == '+ {
+        result = num1 + num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '- {
+        result = num1 - num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '* {
+        result = num1 * num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '/ {
+        result = num1 / num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '% {
+        result = num1 % num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '& {
+        result = num1 & num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '| {
+        result = num1 | num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '^ {
+        result = num1 ^ num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
     }
-    elif playerTurn == 2 {
-      sprite4colour = 0x9c01;
-      graphics;
-      drawYellow();
+    TTY = " Result: ";
+    resultString = intToStr(result);
+    for i in resultString {
+      if i <> '  {
+        TTY = i;
+      }
     }
-    winner = checkWinner();
-    #Update column height
-    columnHeights[column]--;
-    pause;
-    playerTurn %= 2;
-    playerTurn++;
-    turn ++;
-    #If board is filled, make game a draw
-    if turn >= 42 and winner == 0 {
-      winner = 3;
-    }
-    TTY = 0;
+    TTY = ' ;
   }
+}
+
+#Allows the user to input two numbers and the operator and outputs the result
+def exponentialNumbers () {
+  TTY = 0;
+  TTY = "When inputting numbers enter _ to denote the end. ";
+  while true {
+    int num1;
+    int num2;
+    int result;
+    string[5] numString1 = "00000";
+    string[5] numString2 = "00000";
+    string[5] resultString = "00000";
+    TTY = "Please input number 1 (the base): ";
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString1[j] = numString1[j+1];
+            j++;
+          }
+          numString1[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
+      }
+    }
+    TTY = " Please input number 2 (the power): ";
+    keyboard = 0;
+    for i in 0 to 5 {
+      int validDigit = 0;
+      while validDigit == 0 {
+        keyboard = 1;
+        while keyboard == 0 {
+          keyboard = 1;
+        }
+        if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
+          validDigit = 1;
+          TTY = keyboard;
+          int j = 4 - i;
+          while j < 4 {
+            numString2[j] = numString2[j+1];
+            j++;
+          }
+          numString2[4] = keyboard;
+        }
+        elif keyboard == '_ {
+          validDigit = 1;
+          i = 5;
+        }
+      }
+    }
+    num1 = strToInt(numString1);
+    num2 = strToInt(numString2);
+    result = 1;
+    for i in 0 to num2 {
+      result *= num1;
+    }
+    TTY = " Result: ";
+    resultString = intToStr(result);
+    for i in resultString {
+      if i <> '  {
+        TTY = i;
+      }
+    }
+    TTY = ' ;
+  }
+}
+
+def fib () {
+  TTY = 0;
+  string[5] resultString;
+  int a = 1;
+  int b = 1;
+  int c = 2;
+  TTY = "1, 1, 2, ";
+  while true {
+    a = b;
+    b = c;
+    c = a + b;
+    resultString = intToStr(c);
+    for i in resultString {
+      if i <> '  {
+        TTY = i;
+      }
+    }
+    TTY = ", ";
+  }
+}
+
+mode = 0x2007;
+pause;
+
+TTY = "Enter the number of the test code you wish to view. ";
+while true {
   keyboard = 0;
-  if winner == 1 {
-    sprite4colour = 0xd841;
-    graphics;
-    TTY = "Red wins. ";
-    if winCount {
-      player1Wins++;
-    }
+  keyboard = 1;
+  while keyboard == 0 {
+    keyboard = 1;
   }
-  elif winner == 2 {
-    sprite4colour = 0xff4b;
-    graphics;
-    TTY = "Yellow wins. ";
-    if winCount {
-      player2Wins++;
-    }
+  if keyboard == 0x0031 {
+    printHelloWorld();
   }
-  elif winner == 3 {
-    sprite4colour = 0x39cf;
-    graphics;
-    TTY = "Draw. ";
-    if winCount {
-      draws++;
-    }
+  elif keyboard == 0x0032 {
+    operateNumbers();
+  }
+  elif keyboard == 0x0033 {
+    exponentialNumbers();
+  }
+  elif keyboard == 0x0034 {
+    fib();
+  }
+  elif keyboard == 0x0035 {
+    copyKeyboard();
+  }
+  elif keyboard == 0x0036 {
+    copyKeyboardIndirectTest();
+  }
+  elif keyboard == 0x0037 {
+    copyKeyboardIndirectTest2();
+  }
+  elif keyboard == 0x0038 {
+    copyKeyboardIndirectTest3();
+  }
+  else {
+    TTY = "Invalid Number. ";
   }
 }

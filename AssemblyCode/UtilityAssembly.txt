@@ -10,10 +10,7 @@
 PPD returnA
 PPD binNum
 LDV 0000 numDigits
-
 ALB DVB 000a binNum binNum //BinaryToBCDLoopStart
-PWS
-
 PSD ACC2 
 ALB ICB 0000 numDigits numDigits
 ANB INB 0000 binNum
@@ -21,6 +18,8 @@ JPF EQL BinaryToBCDEnd
 JMP BinaryToBCDLoopStart
 PSD numDigits //BinaryToBCDEnd
 JPD returnA
+
+PWS
 
 #BCD to ASCII
 #Inputs: BCDDig, returnA

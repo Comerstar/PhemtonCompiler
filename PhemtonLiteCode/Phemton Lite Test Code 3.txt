@@ -69,12 +69,10 @@ string[5] def intToStr (int number) {
   string[5] result = "     ";
   int i = 4;
   result[i] = (number % 10) | 0x0030;
-  pause;
   number /= 10;
   i--;
   while (i >= 0) and (number <> 0) {
     result[i] = (number % 10) | 0x0030;
-    pause;
     number /= 10;
     i--;
   }
@@ -110,7 +108,6 @@ def operateNumbers () {
       while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
-          pause;
           keyboard = 1;
         }
         if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
@@ -136,7 +133,6 @@ def operateNumbers () {
       while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
-          pause;
           keyboard = 1;
         }
         if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
@@ -163,7 +159,6 @@ def operateNumbers () {
     while validDigit == 0 {
       keyboard = 1;
       while keyboard == 0 {
-        pause;
         keyboard = 1;
       }
       if keyboard == '+ {
@@ -183,6 +178,11 @@ def operateNumbers () {
       }
       elif keyboard == '/ {
         result = num1 / num2;
+        TTY = keyboard;
+        validDigit = 1;
+      }
+      elif keyboard == '% {
+        result = num1 % num2;
         TTY = keyboard;
         validDigit = 1;
       }
@@ -231,7 +231,6 @@ def exponentialNumbers () {
       while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
-          pause;
           keyboard = 1;
         }
         if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
@@ -257,7 +256,6 @@ def exponentialNumbers () {
       while validDigit == 0 {
         keyboard = 1;
         while keyboard == 0 {
-          pause;
           keyboard = 1;
         }
         if (keyboard & 0x00f0 == 0x0030) and (keyboard & 0x000f < 10) {
@@ -314,10 +312,7 @@ def fib () {
   }
 }
 
-pause;
-pause;
 mode = 0x2007;
-pause;
 pause;
 
 TTY = "Enter the number of the test code you wish to view. ";
@@ -326,7 +321,6 @@ while true {
   keyboard = 1;
   while keyboard == 0 {
     keyboard = 1;
-    pause;
   }
   if keyboard == 0x0031 {
     printHelloWorld();
