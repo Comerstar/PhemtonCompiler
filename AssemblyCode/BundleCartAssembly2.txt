@@ -1,5 +1,8 @@
 !8000
 
+LDV c007 MODE
+PWS
+
 LDV 'E TTY
 LDV 'n TTY
 LDV 't TTY
@@ -77,6 +80,14 @@ LDV 'r TTY
 LDV 'd TTY
 LDV '. TTY
 
+#010 00000 11111 00000 11111 000 000 000
+#0100 0000 1111 1000 0011 1110 0000 0000
+
+LDV 40f8 33c0
+LDV 3e00 33c1
+GRF
+LDV 0000 33c0
+
 LDV 0001 KYBD //Spin
 ANB INB 0000 KYBD
 PWS
@@ -90,7 +101,7 @@ ALB AND 001f KYBD 0100
 ANB INB 0000 0100
 JPF EQL Spin
 
-%NumberOfCarts = 000a #Total number of non bundle carts + 1
+%NumberOfCarts = 0004 #Total number of non bundle carts + 1
 ANB SBB NumberOfCarts 0100
 JPF CRY Spin
 
@@ -105,9 +116,3 @@ JMP 4000
 1046
 1048
 104a
-104c
-104e
-1050
-1052
-1054
-1056

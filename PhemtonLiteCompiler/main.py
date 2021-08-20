@@ -2,7 +2,7 @@
 #The Assembler for the Femto-4 found on CircuitVerse.
 #Refer to Developer Guide.txt if you want to understand what this is for. 
 
-debug = False
+debug = True
 if debug:
   print("Running")
 
@@ -731,7 +731,9 @@ def constructTree(line):
       if debug:
         print(line)
         pass
-      return StatementTree([], constructTree(line[0][0]),["[]", "SUBSCRIPT"])
+      return StatementTree([], constructTree(line[0][0]), ["[]", "SUBSCRIPT"])
+    elif line[0][0] == "return":
+      return StatementTree([], [], line[0])
     return line[0]
   else:
     for i in range(len(line)):
@@ -2747,9 +2749,19 @@ def convertCodeIntoPartial(tree, previousLine, fullScope, number = 0, functionHe
               
           elif tree[i].operator[0] == "return":
             handlingIfFunc()
-            temp = convertIntoPartial(previousLine.getLastLine(), StatementTree([], tree[i].right, ["push", "KEYWORD"]), fullScope, 0, jumpNumber, case = 2)
-            previousLine = temp[1]
-            jumpNumber = temp[4]
+            if isinstance(tree[i].right, list):
+              if tree[i].right == []:
+                previousLine.setLastLine(CodeLine("PPD", ["RETURNA"], None))
+                previousLine.setLastLine(CodeLine("JPD", ["RETURNA"], None))
+                previousLine = previousLine.getLastLine()
+              else:
+                temp = convertIntoPartial(previousLine.getLastLine(), StatementTree([], tree[i].right, ["push", "KEYWORD"]), fullScope, 0, jumpNumber, case = 2)
+                previousLine = temp[1]
+                jumpNumber = temp[4]
+            else:
+              temp = convertIntoPartial(previousLine.getLastLine(), StatementTree([], tree[i].right, ["push", "KEYWORD"]), fullScope, 0, jumpNumber, case = 2)
+              previousLine = temp[1]
+              jumpNumber = temp[4]
         else:
           handlingIfFunc()
           temp = convertIntoPartial(previousLine.getLastLine(), tree[i], fullScope, 0, jumpNumber)
@@ -3232,7 +3244,7 @@ def convertIntoPartial(previousLine, tree, fullScope, number, jumpNumber, case =
             resultOperand = "TEMP" + str(number)
             number += 1
             previousLine.setLastLine(CodeLine("ALB NTB", [0, rightOperand[i][0], resultOperand], None))
-            previousLine.setLastLine(CodeLine("ANB AND", [1, resultOperand, resultOperand], None))
+            previousLine.setLastLine(CodeLine("ANB AND", [1, resultOperand], None))
             result.append(["", "ACC", previousLine.getLastLine()])
           else:
             raise Exception("Invalid type " + rightOperand[i][1] + " in: " + tree.cleanPrint())
