@@ -26,7 +26,7 @@ Femto-4 Developer Guide
 What is the Femto-4?
 """"""""""""""""""""
 The Femto-4 is a simulated console constructed in CircuitVerse. The latest version can be found here: 
-https://circuitverse.org/users/4699/projects/femto-4v2-4-computer
+https://circuitverse.org/users/4699/projects/femto-4v2-5-computer
 It is named in reference to the Pico-8. 
 If you have any questions, or you have written a cart and want me to see it/add it to the main branch, feel free to leave a comment on the project itself. 
 
@@ -38,16 +38,17 @@ Jumps, and conditional jumps
 Drive a 16x16 pixel screen
 Read controller and keyboard inputs
 Output text
-Save data into a "save cart" (which is really an EEPROM bank)
-"Fast execution"
+Save data into a EEPROM bank
+Fast execution
 Hold 512kx16b of data in a cart
 Push and pop from a stack
 
 This guide will cover how to create and program a cart, as well as how to use all of the Femto-4's features. 
+Bits will be refered to from least significant to most significant, with the least significant bit being 0, and the most significant being f. 
 
 Creating Carts
 """"""""""""""
-Having forked the project, you can create your own cart either by overwriting an existing cart, or by copying and pasting the cart design into a new subcircuit and rearranging the connections to match the standard cart's design. In the cart you can see a subcircuit labelled CConnecter. Down it are 64 connections, C and DO from 1 to 32. Connected to them are likely to be a few subcircuits from the old cart. Inside these subcircuits are the EEPROMs that will store the program. To create a new 16kx16b EEPROM bank, copy and paste the contents of a pre-existing ROM bank into a new subcircuit, and rearrange the connections to match the connections of the old subcircuit. There are a few other useful memory banks which can be added to the cart. First is the 16kx16b RAM bank, which can be used to increase the RAM available to the Femto-4. Second is the 16Kx16b EEPROMUTL which holds a collection of utility functions. These can be inserted into the cart like any other EEPROM bank. Note that most EEPROM banks do not have all the EEPROM chips they could have. I have not yet needed more than two EEPROM chips, but if you were programming something with a particularly large data table, you might need more. 
+Having forked the project, you can create your own cart either by overwriting an existing cart, or by copying and pasting the cart design into a new subcircuit and rearranging the connections to match the standard cart's design. In the cart you can see a subcircuit labelled CConnecter. Down it are 64 connections, C and DO from 1 to 32. Connected to them are likely to be a few subcircuits from the old cart. Inside these subcircuits are the EEPROMs that will store the program. To create a new 16kx16b EEPROM bank, copy and paste the contents of a pre-existing ROM bank into a new subcircuit, and rearrange the connections to match the connections of the old subcircuit. There are a few other useful memory banks which can be added to the cart. First is the 16kx16b RAM bank, which can be used to increase the RAM available to the Femto-4. Second is the 16Kx16b EEPROMUTL which holds a collection of utility functions. These can be inserted into the cart like any other EEPROM bank. Note that most EEPROM banks do not have all the EEPROM chips they could have. I have not yet needed more than four EEPROM chips, but if you were programming something with a particularly large data table, you might need more. 
 
 Programming the Femto-4
 """""""""""""""""""""""
@@ -272,28 +273,28 @@ FLG: 00c8
 Execution Modes
 """""""""""""""
 The Femto-4 has several execution modes that can change how quickly the Femto-4 executes code. The Mode register and the Protect register are the key registers for this feature. 
-The 3 least significant bits of the mode register control how instructions are executed in relation to the clock. 
-The third bit (the least significant bit) enables fast execution on the rising edge
-The second bit enables fast execution on the falling edge
-The first bit (the most significant bit) enables protection 
+Bits 0-2 (the 3 least significant) of the mode register control how instructions are executed in relation to the clock. 
+The bit 0 (the least significant bit) enables fast execution on the rising edge
+The bit 1 enables fast execution on the falling edge
+The bit 2 (the most significant bit) enables protection 
 
 Should fast execution be enabled on neither edge of the clock, the Femto-4 executes one instruction per clock pulse. 
 
-Fast execution allows multiple instructions to be executed on a single clock pulse. This is required since CircuitVerse limits the clock speed to 10Hz (the clock state flips at 20Hz), which is not very fast. Fast execution will execute code until either a PWS or GRF instruction, or, if protection is enabled, the number of instructions executed is equivalent to the protection value. Executing too many instructions in a single clock pulse will cause CircuitVerse's simulation to stop, so ensuring code can run safely is important. Protection works best when the graphics do not update at precise times, allowing long blocks of instructions to run without having to write in the PWS instructions. However, tailored PWSes will always be slightly better since different instruction have different limits. 16 LDV instructions can easily run in one clock pulse, whilst only around 8 ALB instructions can run in one clock pulse. For regular graphics updates, it is better to run unprotected, since this gives you full control of when the execution is paused, allowing you to ensure that graphics update at the right time in relation to your code.
+Fast execution allows multiple instructions to be executed on a single clock pulse. This is required since CircuitVerse limits the clock speed to 10Hz (the clock state flips at 20Hz), which is not very fast. Fast execution will execute code until either a PWS or GRF instruction, or, if protection is enabled, the number of instructions executed is equivalent to the protection value. Executing too many instructions in a single clock pulse will cause CircuitVerse's simulation to stop, so ensuring code can run safely is important. Protection works best when the graphics do not update at precise times, allowing long blocks of instructions to run without having to write in the PWS instructions. However, tailored PWSes will always be slightly better since different instruction have different limits. 64 LDV instructions can easily run in one clock pulse, whilst only around 32 ALB instructions can run in one clock pulse. For regular graphics updates, it is better to run unprotected, since this gives you full control of when the execution is paused, allowing you to ensure that graphics update at the right time in relation to your code.
 
 For example:
 7 = 0111 = Protected dual edge fast execution
 0 = 0000 = Non-fast execution
 6 = 0110 = Protected falling edge fast execution
 
-The 3 most significant bits of the mode register control how the graphics update.
-The first two bits (the first two most significant bits) control when the graphics update. The four modes are:
+Bits d-f (the 3 most significant bits) of the mode register control how the graphics update.
+The bits e-f (the two most significant bits) control when the graphics update. The four modes are:
 00: Normal speed (on the falling edge of the clock pulse)
 01: Double speed (on both edges of the clock pulse)
 10: Half speed (on the falling edge of every other clock pulse)
 11: Code Controlled (Whenever a GRF instruction is run)
 
-The third bit (the least significant bit) disables graphics updates when it is set high. 
+Bit d (the third most significant bit) disables graphics updates when it is set high. 
 
 For example:
 c003 = Unprotected, dual edge fast execution with code-controlled graphics
@@ -304,15 +305,18 @@ Whilst the mode and protect register can be written to multiple times in a singl
 
 By default, the bootloader sets the mode to 0x0007 and the protection to 0x0010
 
-Graphics
-""""""""
-The Femto-4 can drive a 16x16 pixel screen with 32 "sprites". Each sprite is a rectangle with a colour. The sprites are stored in the PPURAM. The sprite data is stored in pairs, with the first 16 bits being the coordinates of the rectangle's corners, and the second 16 bits being the sprites colour. The sprites are drawn in order from 33c0 to 33fe, so sprites stored at larger addresses are drawn on top of sprites stored at smaller addresses. Pixels where a sprite is not drawn retain their value, so should you want the screen to completely refresh every frame, you will need a background sprite that covers the full screen. 
+Graphics (16x16)
+""""""""""""""""
+The Femto-4 can drive a 16x16 pixel screen with 32 sprites. Each sprite is a rectangle with a colour. The sprites are stored in the PPURAM. The sprite data is stored in pairs, with the first 16 bits being the coordinates of the rectangle's corners, and the second 16 bits being the sprites colour. The sprites are drawn in order from 33c0 to 33fe, so sprites stored at larger addresses are drawn on top of sprites stored at smaller addresses. Pixels where a sprite is not drawn retain their value, so should you want the screen to completely refresh every frame, you will need a background sprite that covers the full screen. 
 
 The sprite data format is as follows:
+Formats are done as a list of what the bits represent and how many bits are used:
+For example:
+x (4), y (4) represents the x coordinate being first, and using 4 bits, followed by the y coordinate which is also 4 bits. 
 Coordinates:
 The coordinates 16 bits store the coordinates of the two opposite corners of the rectangle. The format is:
-x1x2y1y2, with each value being 4 bits.
-In order to drive a 16x16 screen, the coordinates of x2 and y2 are increased by 1, such that a sprite's width is x2-x1+1. Due to this, it is recommended that x1<x2 and y1<y2. Coordinates are the same as a monitor's coordinate system, with right being positive x and down being positive y. 
+x1 (4), x2 (4), y1 (4), y2 (4)
+In order to drive a 16x16 screen, the coordinates of x2 and y2 are increased by 1, such that a sprite's width is x2-x1+1 and a sprite's height is y2-y1+1. Due to this, it is recommended that x1<x2 and y1<y2. Coordinates are the same as a monitor's coordinate system, with right being positive x and down being positive y. 
 
 For example:
 0324 will draw to this area:
@@ -336,7 +340,8 @@ f
 
 Colours:
 The colours are 15-bit direct colour with an enable flag at the end. The order is:
-rgba, with r, g, and b being 5 bits each, and a being one bit. If a is false, then the sprite will not be drawn to the screen. 
+r (5), g (5), b (5), a (1)
+If a is false, then the sprite will not be drawn to the screen. 
 
 For example:
 ffff = white
@@ -366,14 +371,31 @@ End result: top right quadrant red (since it was drawn on top of the cyan sprite
 
 The PPURAM is cleared when the reset button is pressed, and the bootloader writes 0f0f into 33c0 and 0001 into 33c1, clearing the screen, so that programs that rely on the screen not refreshing will have a clean slate to work with. 
 
+Graphics (32x32)
+""""""""""""""""
+The Femto-4 can drive a 32x32 pixel screen with a different PPU. Each sprite can either be a coloured rectangle or a coloured pixel. Unlike the 16x16 PPU, the 32x32 PPU does not treat the two 16-bit addresses separately and combines them in order to gain all the data it requires. Each sprite can be in one of 3 modes. Bits d-f (the 3 most significant bits) are the mode, leaving 29 bits for the sprite's data. Sprites with unused modes are not drawn to the screen. 
+
+Mode 1: Maximises the colour depth of the sprite, sacrificing the ability to draw rectangles. The data is arranged: 
+unused (1), x (5), y (5), r (6), g (6), b (6)
+
+Mode 2: Allows the sprite to be a rectangle, sacrificing the colour depth. The data is arranged:
+x1 (5), x2 (5), y1 (5), y2 (5), r (3), g (3), b (3)
+As with the 16x16 screen, the second coordinates are offset by 1, resulting in the rectangle's dimensions being x2-x1+1, y2-y1+1. 
+
+Mode 3: Uses the same colour format as the 16x16 screen, but a different coordinate format. Cannot be used to draw rectangles. The data is arranged:
+unused (3), x (5), y (5), r (5), g (5), b (5), a (1)
+This mode a) separates the colour from the coordinates making it somewhat easier to handle, and b) allows 16x16 colours to be used on the 32x32 screen, which makes converting code between the two versions easier. 
+
+The screen is drawn in teh same way as the 16x16 screen, with the only difference being the interpretation of the data. 
+
 Updating Graphics
 """""""""""""""""
-It is best not to update PPURAM values when the graphics are being updated, since they may not update correctly. Therefore, in normal and half speed execution modes, PPURAM values should be updated when the clock is high. This is why the jump if clock instructions exist, they allow us to ensure code is being executed on the right side of the clock. 
+It is best not to update PPURAM values when the graphics are being updated, since they may not update correctly. Therefore, in normal and half speed execution modes, PPURAM values should be updated when the clock is high. This is why the jump if clock instructions exist, they allow us to ensure code is being executed on the right side of the clock.
 
 Bank Selection
 """"""""""""""
 The memory in the carts is switchable, allowing far more data to be accessed on a more limited address space. The bank select register defines which of the 32 potential cart slots are enabled. The register is formatted as follows:
-b3b2b1, with each bank being a 5-bit number. b1 specifies the bank that is mapped to the first cart slot, addresses 0x4000-0x7fff. b2 specifies the bank that is mapped to the second slot, addresses 0x8000-0xbfff. b3 specifies the bank in the third slot, addresses 0xc000-0xffff. By default, the bootloader enables bank 1 in slot 1, bank 2 in slot 2, and bank 3 in slot 3. The least significant bit plays no role, and can be ignored. I refer to banks using 1 based indexing, but the values used to activate them are 0 based, so remember to convert the values before using them. 
+b3 b2 b1, with each bank being a 5-bit number. b1 specifies the bank that is mapped to the first cart slot, addresses 0x4000-0x7fff. b2 specifies the bank that is mapped to the second slot, addresses 0x8000-0xbfff. b3 specifies the bank in the third slot, addresses 0xc000-0xffff. By default, the bootloader enables bank 1 in slot 1, bank 2 in slot 2, and bank 3 in slot 3. The least significant bit plays no role, and can be ignored. I refer to banks using 1 based indexing, but the values used to activate them are 0 based, so remember to convert the values before using them. 
 
 For example:
 2200 = 0100 0100 0000 0000 = 01000 10000 00000 = Banks 1, 2 and 3 enabled
