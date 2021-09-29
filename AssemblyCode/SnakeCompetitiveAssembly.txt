@@ -352,7 +352,7 @@ LDV 2007 MODE
 PWS
 PWS
 #Ensure the clearing sprite is removed
-LDV 0000 33fe
+LDV 0000 33ff
 
 #Write initial snake position to the queue
 LDV 0051 aBufferWrite1
