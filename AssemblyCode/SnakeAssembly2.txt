@@ -310,11 +310,10 @@ LDV 0001 aEdgeCheck
 LDV 0001 aBufferReset //startGame
 LDV 0000 aBufferReset
 
-#Clear the screen by setting the highest sprite to a black square covering the whole screen
-LDV 40f8 33fe
-LDV 3e00 33ff
+#Clear the screen by writing a black square covering the whole screen
+LDV 4005 PPU1
+LDV 0f0f PPU2W
 #Ensure cleared screen is rendered
-GRF
 
 #Ensure the clearing sprite is removed
 LDV 0000 33fe
