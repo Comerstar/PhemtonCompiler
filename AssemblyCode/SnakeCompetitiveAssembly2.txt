@@ -345,12 +345,8 @@ LDV 0001 aBufferReset //startGame
 LDV 0000 aBufferReset
 
 #Clear the screen by setting the highest sprite to a black square covering the whole screen
-LDV 40f8 33fe
-LDV 3e00 33ff
-#Ensure cleared screen is rendered
-GRF
-#Ensure the clearing sprite is removed
-LDV 0000 33fe
+LDV 4005 PPU1
+LDV 0f0f PPU2W
 
 #Write initial snake position to the queue
 #00000 01000 00111
