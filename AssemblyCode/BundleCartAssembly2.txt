@@ -1,8 +1,7 @@
 !8000
-
-LDV c007 MODE
+LDV 2007 MODE
 PWS
-
+PWS
 LDV 'E TTY
 LDV 'n TTY
 LDV 't TTY
@@ -101,7 +100,7 @@ ALB AND 001f KYBD 0100
 ANB INB 0000 0100
 JPF EQL Spin
 
-%NumberOfCarts = 0004 #Total number of non bundle carts + 1
+%NumberOfCarts = 0005 #Total number of non bundle carts + 1
 ANB SBB NumberOfCarts 0100
 JPF CRY Spin
 
@@ -116,3 +115,4 @@ JMP 4000
 1046
 1048
 104a
+104c
