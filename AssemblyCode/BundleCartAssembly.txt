@@ -1,5 +1,7 @@
 !8000
-
+LDV 2007 MODE
+PWS
+PWS
 LDV 'E TTY
 LDV 'n TTY
 LDV 't TTY
@@ -90,7 +92,7 @@ ALB AND 001f KYBD 0100
 ANB INB 0000 0100
 JPF EQL Spin
 
-%NumberOfCarts = 000a #Total number of non bundle carts + 1
+%NumberOfCarts = 000b #Total number of non bundle carts + 1
 ANB SBB NumberOfCarts 0100
 JPF CRY Spin
 
@@ -99,6 +101,9 @@ LDV 0000 TTY
 ALB ADD DataTable 0100 0100
 LDI 0100 SELECT
 
+LDV 0007 MODE
+PWS
+PWS
 JMP 4000
 
 0000 //DataTable
@@ -111,3 +116,4 @@ JMP 4000
 1052
 1054
 1056
+1058
